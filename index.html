@@ -1,0 +1,2067 @@
+<title>Reporting Pulse</title>
+<style>
+  :root {
+    color-scheme: light;
+    --page:        #f7efdd;
+    --surface:     #fffbf1;
+    --surface-2:   #efe0bf;
+    --sidebar:     #fffbf1;
+    --ink:         #223649;
+    --ink-2:       #51687d;
+    --muted:       #8c8168;
+    --grid:        #e6d7ae;
+    --baseline:    #cdbd91;
+    --border:      rgba(34,54,73,0.12);
+    --accent:      #2c4f74;
+    --accent-rgb:  44,79,116;
+    --accent-tint: rgba(44,79,116,0.10);
+    --good:        #2f8a5b;
+    --good-rgb:    47,138,91;
+    --good-bg:     rgba(47,138,91,0.12);
+    --warn:        #c85a28;
+    --warn-bg:     rgba(200,90,40,0.18);
+    --warn-bd:     rgba(200,90,40,0.42);
+    --warn-chip:   rgba(200,90,40,0.26);
+    --serious:     #c23b2e;
+    --serious-rgb:  194,59,46;
+    --serious-ink: #8c2a1f;
+    --serious-bg:  rgba(194,59,46,0.14);
+    --serious-bd:  rgba(194,59,46,0.38);
+    --serious-chip: rgba(194,59,46,0.24);
+    --shadow:      0 1px 2px rgba(34,54,73,0.05), 0 8px 24px rgba(34,54,73,0.07);
+    --dur-1: 0.18s;
+    --dur-2: 0.5s;
+    --dur-3: 0.8s;
+    --ease: cubic-bezier(.22,.61,.36,1);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --page:        #16212c;
+      --surface:     #1e2c39;
+      --surface-2:   #253645;
+      --sidebar:     #101923;
+      --ink:         #f5ecd8;
+      --ink-2:       #cdbf9a;
+      --muted:       #93a3af;
+      --grid:        #2c3e4d;
+      --baseline:    #3a4d5c;
+      --border:      rgba(245,236,216,0.12);
+      --accent:      #e0a733;
+      --accent-rgb:  224,167,51;
+      --accent-tint: rgba(224,167,51,0.16);
+      --good:        #4caf7d;
+      --good-rgb:    76,175,125;
+      --good-bg:     rgba(76,175,125,0.16);
+      --warn:        #e07c42;
+      --warn-bg:     rgba(224,124,66,0.18);
+      --warn-bd:     rgba(224,124,66,0.42);
+      --warn-chip:   rgba(224,124,66,0.30);
+      --serious:     #e5584a;
+      --serious-rgb:  229,88,74;
+      --serious-ink: #ffaa9a;
+      --serious-bg:  rgba(229,88,74,0.16);
+      --serious-bd:  rgba(229,88,74,0.40);
+      --serious-chip: rgba(229,88,74,0.28);
+      --shadow:      0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --page:        #16212c;
+    --surface:     #1e2c39;
+    --surface-2:   #253645;
+    --sidebar:     #101923;
+    --ink:         #f5ecd8;
+    --ink-2:       #cdbf9a;
+    --muted:       #93a3af;
+    --grid:        #2c3e4d;
+    --baseline:    #3a4d5c;
+    --border:      rgba(245,236,216,0.12);
+    --accent:      #e0a733;
+    --accent-rgb:  224,167,51;
+    --accent-tint: rgba(224,167,51,0.16);
+    --good:        #4caf7d;
+    --good-rgb:    76,175,125;
+    --good-bg:     rgba(76,175,125,0.16);
+    --warn:        #e07c42;
+    --warn-bg:     rgba(224,124,66,0.18);
+    --warn-bd:     rgba(224,124,66,0.42);
+    --warn-chip:   rgba(224,124,66,0.30);
+    --serious:     #e5584a;
+    --serious-rgb:  229,88,74;
+    --serious-ink: #ffaa9a;
+    --serious-bg:  rgba(229,88,74,0.16);
+    --serious-bd:  rgba(229,88,74,0.40);
+    --serious-chip: rgba(229,88,74,0.28);
+    --shadow:      0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.35);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--page);
+    color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent); }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+  }
+
+  /* ---------------------------------------------------------------- */
+  /* Upload / empty state                                              */
+  /* ---------------------------------------------------------------- */
+  .landing {
+    max-width: 620px;
+    margin: 0 auto;
+    padding: 64px 24px;
+  }
+  .landing-head { text-align: center; margin-bottom: 24px; }
+  .landing-head h1 {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    margin: 0 0 6px;
+  }
+  .landing-head p {
+    font-size: 14px;
+    color: var(--ink-2);
+    margin: 0;
+  }
+  .dropzone {
+    border: 1.5px dashed var(--baseline);
+    border-radius: 16px;
+    background: var(--surface);
+    padding: 44px 24px;
+    text-align: center;
+    transition: border-color var(--dur-1) ease, background var(--dur-1) ease;
+  }
+  .dropzone.drag {
+    border-color: var(--accent);
+    background: var(--accent-tint);
+  }
+  .dropzone .icon {
+    width: 38px; height: 38px;
+    margin: 0 auto 14px;
+    color: var(--muted);
+  }
+  .dropzone h2 {
+    font-size: 15px;
+    font-weight: 600;
+    margin: 0 0 4px;
+  }
+  .dropzone p {
+    font-size: 13px;
+    color: var(--ink-2);
+    margin: 0 0 18px;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--ink);
+    color: var(--page);
+    border: none;
+    border-radius: 8px;
+    padding: 9px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: opacity var(--dur-1) ease, transform var(--dur-1) ease;
+  }
+  .btn:hover { opacity: 0.88; }
+  .btn:active { transform: scale(0.97); }
+  .btn:disabled { opacity: 0.55; cursor: default; }
+  .btn.ghost {
+    background: transparent;
+    color: var(--ink-2);
+    border: 1px solid var(--border);
+  }
+  .btn svg { flex: none; }
+  .dropzone .hint {
+    margin-top: 16px;
+    font-size: 11.5px;
+    color: var(--muted);
+  }
+  .dropzone .error {
+    margin-top: 14px;
+    font-size: 12.5px;
+    color: var(--serious-ink);
+    font-weight: 600;
+  }
+
+  /* ---------------------------------------------------------------- */
+  /* App shell: sidebar + topbar + pages                               */
+  /* ---------------------------------------------------------------- */
+  .shell { display: flex; min-height: 100vh; }
+
+  .sidebar {
+    width: 208px;
+    flex: none;
+    background: var(--sidebar);
+    border-right: 1px solid var(--border);
+    padding: 22px 14px;
+    display: flex;
+    flex-direction: column;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 0 8px;
+    margin-bottom: 26px;
+  }
+  .brand .mark {
+    width: 26px; height: 26px;
+    border-radius: 7px;
+    background: var(--ink);
+    color: var(--page);
+    display: flex; align-items: center; justify-content: center;
+    flex: none;
+  }
+  .brand .mark svg { width: 15px; height: 15px; }
+  .brand .name { font-size: 14.5px; font-weight: 700; letter-spacing: -0.01em; }
+
+  .nav { display: flex; flex-direction: column; gap: 2px; }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 10px;
+    border-radius: 9px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink-2);
+    cursor: pointer;
+    border: none;
+    background: none;
+    font-family: inherit;
+    text-align: left;
+    width: 100%;
+    transition: background var(--dur-1) ease, color var(--dur-1) ease;
+  }
+  .nav-item svg { flex: none; opacity: 0.75; transition: opacity var(--dur-1) ease; }
+  .nav-item:hover { background: var(--surface-2); color: var(--ink); }
+  .nav-item.active { background: var(--accent-tint); color: var(--accent); }
+  .nav-item.active svg { opacity: 1; }
+  .nav-badge {
+    margin-left: auto;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--serious-ink);
+    background: var(--serious-chip);
+    border-radius: 999px;
+    padding: 1px 6px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .sidebar-foot {
+    margin-top: auto;
+    padding-top: 14px;
+    border-top: 1px solid var(--grid);
+  }
+  .sidebar-foot a {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--muted);
+    text-decoration: none;
+    padding: 8px 10px;
+    border-radius: 9px;
+    transition: background var(--dur-1) ease, color var(--dur-1) ease;
+  }
+  .sidebar-foot a:hover { background: var(--surface-2); color: var(--ink); }
+  .sidebar-foot svg { flex: none; }
+
+  .main { flex: 1; min-width: 0; }
+
+  .topbar {
+    position: sticky; top: 0; z-index: 5;
+    background: var(--page);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .topbar-left { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .topbar-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+  .filechip {
+    font-size: 11.5px;
+    color: var(--muted);
+    max-width: 420px;
+    line-height: 1.5;
+  }
+  .filechip strong.fname {
+    display: inline-block;
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: bottom;
+    color: var(--ink-2);
+    font-weight: 600;
+  }
+  .filecaveat { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .filecaveat.stale { color: var(--warn); font-weight: 600; }
+
+  .pill {
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ink-2);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 6px 13px;
+    cursor: pointer;
+    transition: background var(--dur-1) ease, color var(--dur-1) ease, border-color var(--dur-1) ease;
+  }
+  .pill.active {
+    background: var(--ink);
+    color: var(--page);
+    border-color: var(--ink);
+  }
+  .custom-dates {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+  .custom-dates.show { display: flex; }
+  .custom-dates input[type="date"] {
+    font-family: inherit;
+    font-size: 12.5px;
+    color: var(--ink);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 5px 8px;
+  }
+
+  .page {
+    max-width: 1080px;
+    padding: 26px 28px 64px;
+    display: none;
+    animation: pageIn var(--dur-2) var(--ease);
+  }
+  .page.active { display: block; }
+  @keyframes pageIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  .page-head { margin-bottom: 20px; }
+  .page-head h1 { font-size: 19px; font-weight: 700; letter-spacing: -0.01em; margin: 0 0 3px; }
+  .page-head p { font-size: 13px; color: var(--ink-2); margin: 0; max-width: 62ch; }
+
+  /* ---------------------------------------------------------------- */
+  /* KPI strip                                                         */
+  /* ---------------------------------------------------------------- */
+  .kpis {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--grid);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow);
+  }
+  .kpi { background: var(--surface); padding: 16px 18px; }
+  .kpi-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .kpi .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+  }
+  .kpi-badge {
+    width: 26px; height: 26px;
+    border-radius: 7px;
+    background: var(--accent-tint);
+    color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    flex: none;
+  }
+  .kpi-badge svg { width: 14px; height: 14px; }
+  .kpi .value {
+    font-size: 26px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+    line-height: 1;
+  }
+  .kpi .value small { font-size: 14px; font-weight: 500; color: var(--ink-2); margin-left: 2px; }
+  .kpi .delta { margin-top: 6px; font-size: 12.5px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .kpi .delta.up { color: var(--good); }
+  .kpi .delta.down { color: var(--serious-ink); }
+  .kpi .delta.flat { color: var(--muted); font-weight: 500; }
+
+  /* ---------------------------------------------------------------- */
+  /* Section heading                                                   */
+  /* ---------------------------------------------------------------- */
+  .section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 28px 0 4px; }
+  .section-head:first-of-type { margin-top: 0; }
+  .section-head h2 { font-size: 14px; font-weight: 700; margin: 0; }
+  .section-head .note { font-size: 12px; color: var(--muted); text-align: right; }
+  .section-head.section-head-center { flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 2px; }
+  .section-head.section-head-center .note { text-align: center; }
+  .section-sub { font-size: 12.5px; color: var(--muted); margin: 2px 0 12px; }
+
+  /* ---------------------------------------------------------------- */
+  /* Significance gauge card                                           */
+  /* ---------------------------------------------------------------- */
+  .sig-merged-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    padding: 20px 22px 16px;
+    margin-bottom: 24px;
+  }
+  .sig-divider { border-top: 1px solid var(--grid); margin: 18px 0 16px; }
+  .sig-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    text-align: center;
+  }
+  .sig-subhead { font-size: 13px; font-weight: 700; margin: 0; }
+  .bars-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 4px; }
+  .sig-body { flex: 1; min-width: 0; width: 100%; }
+  .cmp-wrap { width: 100%; max-width: 320px; margin: 4px auto 0; }
+  .cmp-track { position: relative; height: 14px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+  .cmp-fill { height: 100%; border-radius: 999px; width: 0; transition: width var(--dur-3) var(--ease), background var(--dur-2) ease; }
+  .cmp-target {
+    position: absolute; top: 0; bottom: 0; width: 3px; border-radius: 2px;
+    background: var(--ink-2); box-shadow: 0 0 0 2px var(--surface);
+    left: 0%; transition: left var(--dur-3) var(--ease);
+  }
+  .cmp-labels { display: flex; justify-content: space-between; margin-top: 9px; font-size: 11.5px; color: var(--muted); }
+  .cmp-label-item { display: flex; align-items: center; }
+  .cmp-label-item strong { color: var(--ink); font-weight: 700; font-variant-numeric: tabular-nums; margin-left: 4px; }
+  .cmp-swatch { width: 7px; height: 7px; border-radius: 50%; margin-right: 6px; flex: none; }
+  .cmp-swatch.target { width: 3px; height: 11px; border-radius: 2px; background: var(--ink-2); }
+  .sig-tag {
+    display: inline-block;
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-radius: 999px;
+    padding: 2px 8px;
+    margin-bottom: 7px;
+  }
+  .sig-tag.normal { color: var(--good); background: var(--good-bg); }
+  .sig-tag.notable-down { color: var(--warn); background: var(--warn-chip); }
+  .sig-tag.significant-down { color: var(--serious-ink); background: var(--serious-chip); }
+  .sig-tag.notable-up, .sig-tag.significant-up { color: var(--good); background: var(--good-bg); }
+  .sig-tag.unknown { color: var(--muted); background: var(--surface-2); }
+  .dist-chart-wrap svg { width: 100%; height: auto; display: block; overflow: visible; }
+  .dist-curve { fill: none; stroke: var(--ink-2); stroke-width: 1.6; }
+  .dist-axis { stroke: var(--grid); stroke-width: 1; }
+  .dist-zline { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 3,3; }
+  .dist-ztick { font-size: 9.5px; fill: var(--muted); text-anchor: middle; font-variant-numeric: tabular-nums; }
+  .dist-region-label { font-size: 9.5px; font-weight: 700; text-anchor: middle; text-transform: uppercase; letter-spacing: 0.04em; }
+  .dist-marker-line { stroke-width: 1.4; stroke-dasharray: 4,3; }
+  .dist-marker-dot { stroke: var(--surface); stroke-width: 2; }
+  .dist-marker-tag { font-size: 10px; font-weight: 700; text-anchor: middle; }
+  .dist-caption { font-size: 11.5px; color: var(--muted); text-align: center; margin: 2px 0 10px; }
+  .legend-dot.normal { background: var(--good); }
+  .sig-headline { font-size: 15px; font-weight: 600; margin: 0 0 4px; }
+  .sig-detail { font-size: 13px; color: var(--ink-2); margin: 0 auto; line-height: 1.55; max-width: 60ch; }
+
+  /* ---------------------------------------------------------------- */
+  /* Trend chart                                                       */
+  /* ---------------------------------------------------------------- */
+  .trend-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    padding: 18px 20px 12px;
+    margin-bottom: 20px;
+  }
+  .bars { display: flex; align-items: flex-end; gap: 8px; height: 150px; position: relative; padding-top: 20px; }
+  /* A fixed reference line at the foot of the bars — every bar sits flush
+     against it (see .bar-col .wk-label's fixed height below, which is what
+     pins the line's position), so differing bar heights read as movement
+     off a shared zero rather than looking like they start from different
+     places. Sits behind the bars themselves via z-index. */
+  .bars-axis { position: absolute; left: 0; right: 0; bottom: 20px; border-top: 1px solid var(--grid); z-index: 0; }
+  .baseline-line { position: absolute; left: 0; right: 0; border-top: 1.5px dashed var(--baseline); }
+  .baseline-label {
+    position: absolute; right: 0; top: -16px;
+    font-size: 10.5px; color: var(--muted); font-variant-numeric: tabular-nums;
+    background: var(--surface); padding-left: 4px;
+  }
+  .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; position: relative; z-index: 1; min-width: 0; }
+  .bar-val { font-size: 10.5px; font-weight: 600; color: var(--ink-2); font-variant-numeric: tabular-nums; margin-bottom: 4px; white-space: nowrap; }
+  .bar-mark { width: 6px; height: 6px; border-radius: 50%; margin-bottom: 3px; border: 1.5px solid var(--surface); }
+  .bar-mark.notable-down { background: var(--warn); }
+  .bar-mark.significant-down { background: var(--serious); }
+  .bar-mark.notable-up, .bar-mark.significant-up { background: var(--good); }
+  .bar { width: 100%; max-width: 26px; background: rgba(var(--accent-rgb), 0.32); border-radius: 4px 4px 2px 2px; min-height: 2px; transition: height var(--dur-2) var(--ease); }
+  .bar.now { background: var(--accent); }
+  .bar.flag-notable-down { background: var(--warn-chip); }
+  .bar.flag-significant-down { background: rgba(var(--serious-rgb), 0.55); }
+  .bar.flag-notable-up { background: rgba(var(--good-rgb), 0.55); }
+  .bar.flag-significant-up { background: var(--good); }
+  .bar-col .wk-label { margin-top: 8px; height: 12px; line-height: 12px; overflow: hidden; font-size: 9.5px; color: var(--muted); white-space: nowrap; }
+  .bar-col.is-now .wk-label { color: var(--ink-2); font-weight: 600; }
+  .legend-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; padding: 10px 2px 4px; font-size: 11px; color: var(--muted); }
+  .legend-item { display: flex; align-items: center; gap: 5px; }
+  .legend-dot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+  .legend-dot.notable-down { background: var(--warn); }
+  .legend-dot.significant-down { background: var(--serious); }
+  .legend-dot.up { background: var(--accent); }
+
+  /* ---------------------------------------------------------------- */
+  /* Tables (shared)                                                   */
+  /* ---------------------------------------------------------------- */
+  .table-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow); overflow: hidden; margin-bottom: 20px; }
+  .table-scroll { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; }
+  #grid { min-width: 760px; }
+  #beforeNowTable, #sigWeeksTable, #sigDeptTable { min-width: 560px; }
+  thead th { text-align: center; font-size: 11px; font-weight: 600; color: var(--muted); padding: 12px 8px 8px; border-bottom: 1px solid var(--grid); white-space: nowrap; }
+  thead th.left { text-align: left; }
+  thead th .dow { display: block; font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); font-weight: 600; margin-bottom: 1px; }
+  thead th.dept-col, tbody td.dept { text-align: left; padding-left: 16px; position: sticky; left: 0; background: var(--surface); }
+  thead th.total-col, tbody td.total { border-left: 1px solid var(--grid); }
+  tbody td, tbody th { padding: 9px 8px; font-size: 13px; text-align: center; font-variant-numeric: tabular-nums; border-bottom: 1px solid var(--grid); }
+  tbody tr:last-child td, tbody tr:last-child th { border-bottom: none; }
+  tbody td.dept { font-weight: 500; color: var(--ink); white-space: nowrap; }
+  tbody td.left { text-align: left; white-space: nowrap; }
+  tbody td.count { color: var(--ink-2); }
+  tbody td.count[data-v="0"] { color: var(--baseline); }
+  tbody td.count[data-heat="1"] { background: rgba(var(--accent-rgb), 0.12); color: var(--ink); }
+  tbody td.count[data-heat="2"] { background: rgba(var(--accent-rgb), 0.24); color: var(--ink); font-weight: 600; }
+  tbody td.count[data-heat="3"] { background: rgba(var(--accent-rgb), 0.36); color: var(--ink); font-weight: 700; }
+  tbody td.count[data-heat="4"] { background: rgba(var(--accent-rgb), 0.50); color: var(--ink); font-weight: 700; }
+  tbody td.total { font-weight: 700; color: var(--ink); background: var(--surface-2); }
+  tfoot td { padding: 10px 8px; font-size: 13px; font-weight: 700; text-align: center; font-variant-numeric: tabular-nums; border-top: 1px solid var(--grid); background: var(--surface-2); }
+  tfoot td.dept { text-align: left; padding-left: 16px; }
+  tfoot td.total { border-left: 1px solid var(--grid); color: var(--accent); }
+  .partial-note { font-size: 11px; color: var(--muted); padding: 8px 16px 12px; }
+  .quiet-note { font-size: 12.5px; color: var(--muted); margin: 0 0 8px; line-height: 1.6; }
+  .empty-note { font-size: 13px; color: var(--muted); padding: 24px 16px; text-align: center; }
+
+  td.rate { color: var(--ink-2); }
+  td.chip-cell { text-align: right; padding-right: 16px; }
+  td.chip-cell-mid { text-align: center; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 12px; font-weight: 700; padding: 2px 9px; border-radius: 999px;
+    font-variant-numeric: tabular-nums;
+  }
+  .chip.up { color: var(--ink-2); background: var(--surface-2); }
+  .chip.flat { color: var(--muted); background: var(--surface-2); }
+  .chip.warn { color: var(--warn); background: var(--warn-chip); }
+  .chip.serious { color: var(--serious-ink); background: var(--serious-chip); }
+  .chip.accent { color: var(--accent); background: var(--accent-tint); }
+  .chip.good { color: var(--good); background: var(--good-bg); }
+  .chip.na { color: var(--muted); background: var(--surface-2); font-weight: 500; }
+
+  footer.meta {
+    border-top: 1px solid var(--grid);
+    padding-top: 16px;
+    margin-top: 8px;
+    display: flex; justify-content: space-between; gap: 24px; flex-wrap: wrap;
+    font-size: 12px; color: var(--muted); line-height: 1.6;
+  }
+  footer.meta .col { max-width: 460px; }
+  footer.meta strong { color: var(--ink-2); }
+
+  [hidden] { display: none !important; }
+  [data-count] { display: inline-block; }
+
+  @media (max-width: 860px) {
+    .shell { flex-direction: column; }
+    .sidebar { width: 100%; flex-direction: row; align-items: center; padding: 12px 16px; overflow-x: auto; }
+    .brand { margin-bottom: 0; margin-right: 8px; }
+    .nav { flex-direction: row; }
+    .sidebar-foot { margin-top: 0; margin-left: auto; border-top: none; padding-top: 0; }
+    .sidebar-foot a { padding: 8px; }
+    .sidebar-foot a span { display: none; }
+    .page { padding: 20px 16px 48px; }
+    .topbar { padding: 12px 16px; }
+  }
+  @media (max-width: 640px) {
+    .kpis { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+
+<div id="landing" class="landing">
+  <div class="landing-head">
+    <h1>Reporting Pulse</h1>
+    <p>Daily safety &amp; operational reports by department, straight from your iQSMS export</p>
+  </div>
+  <div class="dropzone" id="dropzone">
+    <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 15V4M12 4L7.5 8.5M12 4L16.5 8.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <h2>Drop today's iQSMS export here</h2>
+    <p>Or choose the .xlsx or .csv report-list file from your computer</p>
+    <button class="btn" id="browseBtn" type="button">Choose file</button>
+    <input type="file" id="fileInput" accept=".xlsx,.csv" hidden>
+    <div class="hint">Processed entirely in your browser — the file is never uploaded anywhere.</div>
+    <div class="error" id="fileError" hidden></div>
+  </div>
+</div>
+
+<div class="shell" id="shell" hidden>
+
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="mark"><svg viewBox="0 0 24 24" fill="none"><path d="M4 18V10M12 18V4M20 18v-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></span>
+      <span class="name">Reporting Pulse</span>
+    </div>
+    <nav class="nav" id="nav">
+      <button class="nav-item active" data-page="overview" type="button">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><rect x="3.5" y="3.5" width="7.5" height="7.5" rx="1.6" stroke="currentColor" stroke-width="1.7"/><rect x="13" y="3.5" width="7.5" height="7.5" rx="1.6" stroke="currentColor" stroke-width="1.7"/><rect x="3.5" y="13" width="7.5" height="7.5" rx="1.6" stroke="currentColor" stroke-width="1.7"/><rect x="13" y="13" width="7.5" height="7.5" rx="1.6" stroke="currentColor" stroke-width="1.7"/></svg>
+        <span>Overview</span>
+      </button>
+      <button class="nav-item" data-page="trends" type="button">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M3.5 18.5L9 11l4 4 7.5-9.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 5.5h4.5V10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>Trends &amp; Significance</span>
+        <span class="nav-badge" id="navSigBadge" hidden></span>
+      </button>
+      <button class="nav-item" data-page="risk" type="button">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M12 3.5l9 15.5H3l9-15.5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M12 10v4.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="16.7" r="1" fill="currentColor"/></svg>
+        <span>Risk Trend</span>
+        <span class="nav-badge" id="navRiskBadge" hidden></span>
+      </button>
+      <button class="nav-item" data-page="daily" type="button">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><rect x="3.5" y="4.5" width="17" height="16" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M3.5 9.5h17" stroke="currentColor" stroke-width="1.7"/><path d="M8 3v3M16 3v3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        <span>Daily Detail</span>
+      </button>
+    </nav>
+    <div class="sidebar-foot">
+      <a href="#" id="guideLink" target="_blank" rel="noopener">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7"/><path d="M12 11v5.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="7.8" r="1.05" fill="currentColor"/></svg>
+        <span>Field guide</span>
+      </a>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left" id="controlsRow"></div>
+      <div class="topbar-right">
+        <div class="filechip" id="filechip"></div>
+        <button class="btn ghost" id="changeFileBtn" type="button">Upload a different file</button>
+      </div>
+    </div>
+
+    <!-- ============ PAGE: OVERVIEW ============ -->
+    <div class="page active" id="page-overview">
+      <div class="page-head">
+        <h1>Overview</h1>
+        <p>Where reporting stands right now, and whether that's normal for this organisation.</p>
+      </div>
+
+      <div class="kpis" id="kpis"></div>
+
+      <div class="section-head section-head-center">
+        <h2 id="sigSectionTitle">Is this week normal?</h2>
+        <span class="note" id="sigWeekNote"></span>
+      </div>
+      <div class="sig-merged-card">
+        <div class="sig-card" id="sigCard"></div>
+        <div class="sig-divider"></div>
+        <div class="dist-chart-wrap"><svg id="distChart" viewBox="0 0 660 170"></svg></div>
+        <p class="dist-caption" id="distCaption"></p>
+        <div class="sig-divider"></div>
+        <div class="bars-head">
+          <span class="sig-subhead" id="barsHeadLabel">Recent weekly volume</span>
+          <span class="note">vs. this org's historical spread</span>
+        </div>
+        <div class="bars" id="barsOverview"></div>
+        <div class="legend-row" id="legendOverview"></div>
+      </div>
+    </div>
+
+    <!-- ============ PAGE: TRENDS & SIGNIFICANCE ============ -->
+    <div class="page" id="page-trends">
+      <div class="page-head">
+        <h1>Trends &amp; Significance</h1>
+      </div>
+
+      <div class="section-head">
+        <h2>Weekly volume (6 months)</h2>
+        <span class="note" id="trendNote"></span>
+      </div>
+      <div class="trend-card">
+        <div class="bars" id="barsTrend"></div>
+        <div class="legend-row" id="legendTrend"></div>
+      </div>
+
+      <div class="section-head">
+        <h2>Weeks that stood out</h2>
+        <span class="note">Organisation-wide, sorted by how unusual</span>
+      </div>
+      <div class="table-card">
+        <div class="table-scroll" id="sigWeeksWrap"><table id="sigWeeksTable"></table></div>
+      </div>
+
+      <div class="section-head">
+        <h2>Departments with a significant week</h2>
+        <span class="note">Most severe week per department, last 12 weeks</span>
+      </div>
+      <div class="table-card">
+        <div class="table-scroll" id="sigDeptWrap"><table id="sigDeptTable"></table></div>
+      </div>
+
+      <div class="section-head">
+        <h2>Compared to before</h2>
+        <span class="note" id="beforeNowNote"></span>
+      </div>
+      <div class="table-card">
+        <div class="table-scroll"><table id="beforeNowTable"></table></div>
+      </div>
+    </div>
+
+    <!-- ============ PAGE: RISK TREND ============ -->
+    <div class="page" id="page-risk">
+      <div class="page-head">
+        <h1>Risk Trend</h1>
+        <p>Whether the average initial risk rating across reports is rising, based on this organisation's risk matrix.</p>
+      </div>
+
+      <div id="riskEmptyNote"></div>
+
+      <div id="riskContent" hidden>
+        <div class="kpis" id="riskKpis"></div>
+        <p class="quiet-note" id="riskCaveat"></p>
+
+        <div class="section-head section-head-center">
+          <h2 id="riskSigTitle">Is this week's average risk normal?</h2>
+          <span class="note" id="riskWeekNote"></span>
+        </div>
+        <div class="sig-merged-card">
+          <div class="sig-card" id="riskSigCard"></div>
+          <div class="sig-divider"></div>
+          <div class="dist-chart-wrap"><svg id="riskDistChart" viewBox="0 0 660 170"></svg></div>
+          <p class="dist-caption" id="riskDistCaption"></p>
+          <div class="sig-divider"></div>
+          <div class="bars-head">
+            <span class="sig-subhead">Weekly average risk (6 months)</span>
+            <span class="note" id="riskTrendNote"></span>
+          </div>
+          <div class="bars" id="barsRisk"></div>
+          <div class="legend-row" id="legendRisk"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ PAGE: DAILY DETAIL ============ -->
+    <div class="page" id="page-daily">
+      <div class="page-head">
+        <h1>Daily Detail</h1>
+        <p>Reports per day, by department, for the range selected above.</p>
+      </div>
+
+      <div class="table-card">
+        <div class="table-scroll"><table id="grid"></table></div>
+        <div class="partial-note">The most recent day shown may be incomplete, depending on when this file was exported.</div>
+      </div>
+      <p class="quiet-note" id="quiet-note"></p>
+
+      <footer class="meta">
+        <div class="col"><strong>Basis:</strong> <span id="basisNote"></span> <span id="missingNote"></span></div>
+        <div class="col"><strong>To refresh:</strong> upload tomorrow's export any time — it's a full cumulative list, so this page rebuilds the whole picture from scratch, right here in your browser. See the <a href="#" id="guideLink2" target="_blank" rel="noopener">field guide</a> for how each figure is calculated.</div>
+      </footer>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  var REDUCE_MOTION = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+
+  // ===== Config =====
+  var GUIDE_URL = "https://claude.ai/code/artifact/93d6f77c-7217-4883-bc11-8e3f97739d63";
+  document.getElementById("guideLink").href = GUIDE_URL;
+  document.getElementById("guideLink2").href = GUIDE_URL;
+
+  var DAY_MS = 86400000;
+  var MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  var DOWS = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+
+  function dayIndex(y, m, d) { return Math.floor(Date.UTC(y, m, d) / DAY_MS); }
+  function fromDayIndex(idx) { return new Date(idx * DAY_MS); }
+  function fmtShort(idx) { var dt = fromDayIndex(idx); return dt.getUTCDate() + " " + MONTHS[dt.getUTCMonth()]; }
+  function fmtDow(idx) { return DOWS[fromDayIndex(idx).getUTCDay()]; }
+  function pad2(n) { return n < 10 ? "0" + n : "" + n; }
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  // ===== Parsing =====
+  function parseEventValue(v) {
+    if (v == null || v === "") return null;
+    if (v instanceof Date && !isNaN(v)) return dayIndex(v.getFullYear(), v.getMonth(), v.getDate());
+    if (typeof v === "string") {
+      var m = v.trim().match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (m) return dayIndex(+m[1], +m[2] - 1, +m[3]);
+      m = v.trim().match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+      if (m) return dayIndex(+m[3], +m[2] - 1, +m[1]);
+      var d2 = new Date(v);
+      if (!isNaN(d2)) return dayIndex(d2.getFullYear(), d2.getMonth(), d2.getDate());
+      return null;
+    }
+    if (typeof v === "number") {
+      var epoch = Date.UTC(1899, 11, 30);
+      var ms = epoch + Math.round(v) * DAY_MS;
+      var d3 = new Date(ms);
+      return dayIndex(d3.getUTCFullYear(), d3.getUTCMonth(), d3.getUTCDate());
+    }
+    return null;
+  }
+
+  function findCol(headers, must, prefer) {
+    var lower = headers.map(function (h) { return (h || "").toString().trim().toLowerCase(); });
+    for (var i = 0; i < lower.length; i++) if (lower[i] === prefer) return i;
+    var candidates = [];
+    for (var j = 0; j < lower.length; j++) {
+      var ok = must.every(function (t) { return lower[j].indexOf(t) !== -1; });
+      if (ok) candidates.push(j);
+    }
+    return candidates.length ? candidates[0] : -1;
+  }
+
+  function findDateCol(headers) {
+    var lower = headers.map(function (h) { return (h || "").toString().trim().toLowerCase(); });
+    function first(test) { for (var i = 0; i < lower.length; i++) if (test(lower[i])) return i; return -1; }
+    var col = first(function (h) { return h.indexOf("creat") !== -1 && (h.indexOf("date") !== -1 || h.indexOf("time") !== -1); });
+    if (col !== -1) return { col: col, basis: "created" };
+    col = first(function (h) { return h.indexOf("submit") !== -1 && (h.indexOf("date") !== -1 || h.indexOf("time") !== -1); });
+    if (col !== -1) return { col: col, basis: "created" };
+    col = first(function (h) { return h.indexOf("kind of report") === -1 && /report(ed)?\s*date|date\s*report(ed)?|date\s*logg?ed|logg?ed\s*date/.test(h); });
+    if (col !== -1) return { col: col, basis: "created" };
+    col = first(function (h) { return h.indexOf("event") !== -1 && h.indexOf("lt") !== -1; });
+    if (col !== -1) return { col: col, basis: "event" };
+    col = first(function (h) { return h.indexOf("event") !== -1 && h.indexOf("utc") !== -1; });
+    if (col !== -1) return { col: col, basis: "event" };
+    col = first(function (h) { return h.indexOf("event") !== -1 && h.indexOf("date") !== -1; });
+    if (col !== -1) return { col: col, basis: "event" };
+    col = first(function (h) { return h.indexOf("due") !== -1 && h.indexOf("date") !== -1; });
+    if (col !== -1) return { col: col, basis: "due" };
+    col = first(function (h) { return h.indexOf("date") !== -1; });
+    if (col !== -1) return { col: col, basis: "event" };
+    return { col: -1, basis: null };
+  }
+
+  // ===== Risk scoring =====
+  // This org's 5x5 risk matrix (confirmed against its own reference sheet):
+  // codes are written as <severity 1-5><likelihood A-E>, e.g. "3C". Severity
+  // weight triples per step (1, 3, 9, 27, 81) and likelihood weight doubles
+  // per step from E (least likely) to A (almost certain: 1, 2, 4, 8, 16).
+  // The combined score is their product — verified against every cell of the
+  // official matrix.
+  var RISK_SEVERITY_WEIGHT = { 1: 1, 2: 3, 3: 9, 4: 27, 5: 81 };
+  var RISK_LIKELIHOOD_WEIGHT = { E: 1, D: 2, C: 4, B: 8, A: 16 };
+
+  // Returns a numeric risk score, or null when the value can't be scored —
+  // blank, "This report has not yet been risk evaluated!", or anything that
+  // doesn't match a <number><letter> code. Null values are excluded from
+  // every risk average on the Risk Trend page and counted separately as
+  // "unrated" so the dashboard can flag how many reports that affects.
+  // "No risk involved" is treated as an explicit score of 0 — both of these
+  // are stated assumptions, called out on the Risk Trend page itself.
+  function parseRiskScore(raw) {
+    if (raw == null) return null;
+    var s = String(raw).trim();
+    if (!s) return null;
+    if (s.toLowerCase().indexOf("no risk involved") !== -1) return 0;
+    var m = s.match(/([1-5])\s*[-\s]?\s*([A-Ea-e])\b/);
+    if (!m) return null;
+    var sev = RISK_SEVERITY_WEIGHT[+m[1]];
+    var lik = RISK_LIKELIHOOD_WEIGHT[m[2].toUpperCase()];
+    if (sev == null || lik == null) return null;
+    return sev * lik;
+  }
+
+  function findRiskCol(headers) {
+    var lower = headers.map(function (h) { return (h || "").toString().trim().toLowerCase(); });
+    for (var i = 0; i < lower.length; i++) {
+      if (lower[i].indexOf("risk") !== -1 && lower[i].indexOf("initial") !== -1) return i;
+    }
+    for (var j = 0; j < lower.length; j++) {
+      if (lower[j].indexOf("risk") !== -1 && (lower[j].indexOf("level") !== -1 || lower[j].indexOf("rating") !== -1)) return j;
+    }
+    return -1;
+  }
+
+  function detectDelimiter(text) {
+    var firstLine = "", inQ = false;
+    for (var i = 0; i < text.length && i < 5000; i++) {
+      var c = text[i];
+      if (c === '"') inQ = !inQ;
+      else if (!inQ && (c === "\n" || c === "\r")) break;
+      firstLine += c;
+    }
+    var counts = { ",": 0, ";": 0, "\t": 0 };
+    var inQ2 = false;
+    for (var j = 0; j < firstLine.length; j++) {
+      var ch = firstLine[j];
+      if (ch === '"') inQ2 = !inQ2;
+      else if (!inQ2 && counts.hasOwnProperty(ch)) counts[ch]++;
+    }
+    var best = ",", bestN = -1;
+    for (var d in counts) if (counts[d] > bestN) { bestN = counts[d]; best = d; }
+    return best;
+  }
+
+  function parseCSV(text, delim) {
+    var rows = [], row = [], field = "", inQ = false;
+    var i = 0, len = text.length;
+    while (i < len) {
+      var c = text[i];
+      if (inQ) {
+        if (c === '"') {
+          if (text.charAt(i + 1) === '"') { field += '"'; i += 2; continue; }
+          inQ = false; i++; continue;
+        }
+        field += c; i++; continue;
+      } else {
+        if (c === '"') { inQ = true; i++; continue; }
+        if (c === delim) { row.push(field); field = ""; i++; continue; }
+        if (c === "\r") { i++; continue; }
+        if (c === "\n") { row.push(field); rows.push(row); row = []; field = ""; i++; continue; }
+        field += c; i++; continue;
+      }
+    }
+    if (field.length || row.length) { row.push(field); rows.push(row); }
+    return rows;
+  }
+
+  function mean(arr) { return arr.reduce(function (a, b) { return a + b; }, 0) / arr.length; }
+  function sampleStd(arr, m) {
+    if (arr.length < 2) return 0;
+    var v = arr.reduce(function (s, x) { return s + (x - m) * (x - m); }, 0) / (arr.length - 1);
+    return Math.sqrt(v);
+  }
+  // Standard-normal CDF via Abramowitz & Stegun erf approximation (max error ~1.5e-7).
+  function erf(x) {
+    var sign = x < 0 ? -1 : 1; x = Math.abs(x);
+    var a1 = 0.254829592, a2 = -0.284496736, a3 = 1.421413741, a4 = -1.453152027, a5 = 1.061405429, p = 0.3275911;
+    var t = 1 / (1 + p * x);
+    var y = 1 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
+    return sign * y;
+  }
+  function confidenceFromZ(z) { return Math.max(0, Math.min(0.9999, 2 * 0.5 * (1 + erf(Math.abs(z) / Math.SQRT2)) - 1)); }
+
+  // Ordinary least-squares slope/intercept for a simple x→y trend line —
+  // used to turn a run of weekly averages into a single "is this rising or
+  // falling, and by how much" estimate (see the Risk Trend page).
+  function linearTrend(points) {
+    var n = points.length;
+    if (n < 2) return null;
+    var sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
+    points.forEach(function (p) { sumX += p.x; sumY += p.y; sumXY += p.x * p.y; sumXX += p.x * p.x; });
+    var denom = n * sumXX - sumX * sumX;
+    if (denom === 0) return null;
+    var slope = (n * sumXY - sumX * sumY) / denom;
+    var intercept = (sumY - slope * sumX) / n;
+    return { slope: slope, intercept: intercept };
+  }
+
+  // ===== State =====
+  var state = { records: null, byDept: null, maxIdx: null, minIdx: null, missingCount: 0, fileName: "" };
+  var rangeMode = "7";
+  var customStart = null, customEnd = null;
+  var currentPage = "overview";
+
+  function mostRecentMonday(idx) {
+    var dow = fromDayIndex(idx).getUTCDay();
+    return idx - ((dow + 6) % 7);
+  }
+
+  // ===== File handling =====
+  var fileInput = document.getElementById("fileInput");
+  var dropzone = document.getElementById("dropzone");
+  var browseBtn = document.getElementById("browseBtn");
+  var changeFileBtn = document.getElementById("changeFileBtn");
+  var fileError = document.getElementById("fileError");
+  var landing = document.getElementById("landing");
+  var shell = document.getElementById("shell");
+
+  browseBtn.addEventListener("click", function () { fileInput.click(); });
+  changeFileBtn.addEventListener("click", function () {
+    shell.hidden = true;
+    landing.hidden = false;
+    fileError.hidden = true;
+  });
+  fileInput.addEventListener("change", function (e) { if (e.target.files && e.target.files[0]) handleFile(e.target.files[0]); });
+  ["dragenter", "dragover"].forEach(function (evt) { dropzone.addEventListener(evt, function (e) { e.preventDefault(); dropzone.classList.add("drag"); }); });
+  ["dragleave", "drop"].forEach(function (evt) { dropzone.addEventListener(evt, function (e) { e.preventDefault(); dropzone.classList.remove("drag"); }); });
+  dropzone.addEventListener("drop", function (e) { if (e.dataTransfer.files && e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
+
+  function showError(msg) { fileError.textContent = msg; fileError.hidden = false; }
+
+  function handleFile(file) {
+    fileError.hidden = true;
+    var isCsv = /\.csv$/i.test(file.name);
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      try {
+        var rowsArr;
+        if (isCsv) {
+          var bytes = new Uint8Array(e.target.result);
+          var text = new TextDecoder("utf-8").decode(bytes);
+          if (text.charCodeAt(0) === 0xfeff) text = text.slice(1);
+          rowsArr = parseCSV(text, detectDelimiter(text));
+        } else {
+          var data = new Uint8Array(e.target.result);
+          var wb = XLSX.read(data, { type: "array", cellDates: true });
+          var sheetName = wb.SheetNames.find(function (n) { return /report\s*list/i.test(n); }) || wb.SheetNames[0];
+          rowsArr = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], { header: 1, defval: null, raw: true });
+        }
+        if (!rowsArr.length) { showError("That file doesn't seem to have any rows on it."); return; }
+        var headers = rowsArr[0];
+        var kindCol = findCol(headers, ["kind", "report"], "kind of report");
+        var dateInfo = findDateCol(headers);
+        if (kindCol === -1 || dateInfo.col === -1) {
+          showError("Couldn't find the “Kind of Report” and a date column in this file — check it's an iQSMS report-list export.");
+          return;
+        }
+        var dateCol = dateInfo.col;
+        var riskCol = findRiskCol(headers);
+        var records = [], missing = 0;
+        for (var i = 1; i < rowsArr.length; i++) {
+          var r = rowsArr[i];
+          if (!r || !r.length) continue;
+          var kindRaw = r[kindCol];
+          var kind = (kindRaw == null || kindRaw === "") ? "Unspecified" : String(kindRaw).trim();
+          var idx = parseEventValue(r[dateCol]);
+          if (idx == null) { missing++; continue; }
+          var risk = riskCol !== -1 ? parseRiskScore(r[riskCol]) : null;
+          records.push({ kind: kind, idx: idx, risk: risk });
+        }
+        if (!records.length) { showError("Found rows, but couldn't read any dates from them."); return; }
+        loadRecords(records, missing, file.name, headers[dateCol], dateInfo.basis, riskCol !== -1);
+      } catch (err) {
+        showError("Couldn't read that file (" + (err && err.message ? err.message : "unknown error") + "). Make sure it's an iQSMS report-list export (.xlsx or .csv).");
+      }
+    };
+    reader.onerror = function () { showError("Couldn't read that file — please try again."); };
+    reader.readAsArrayBuffer(file);
+  }
+
+  // Departments that are naturally low-volume in most exports — surfaced as a caveat
+  // rather than excluded, so a handful of reports (or none) there isn't mistaken for a problem.
+  var LOW_VOLUME_DEPTS = ["procurement", "aerodrome"];
+
+  function loadRecords(records, missing, fileName, dateBasisHeader, dateBasisKind, hasRiskCol) {
+    var byDept = {};
+    var minIdx = Infinity, maxIdx = -Infinity;
+    records.forEach(function (r) {
+      if (!byDept[r.kind]) byDept[r.kind] = [];
+      byDept[r.kind].push(r.idx);
+      if (r.idx < minIdx) minIdx = r.idx;
+      if (r.idx > maxIdx) maxIdx = r.idx;
+    });
+    Object.keys(byDept).forEach(function (k) { byDept[k].sort(function (a, b) { return a - b; }); });
+
+    // Risk scores get their own sorted (idx, score) list plus a running
+    // prefix sum, so any date range's average risk is two binary searches
+    // away — the same lowerBound/upperBound approach countInRange uses.
+    var rated = records.filter(function (r) { return r.risk != null; })
+      .map(function (r) { return { idx: r.idx, risk: r.risk }; })
+      .sort(function (a, b) { return a.idx - b.idx; });
+    var riskIdx = rated.map(function (r) { return r.idx; });
+    var riskPrefixSum = new Array(rated.length + 1);
+    riskPrefixSum[0] = 0;
+    for (var ri = 0; ri < rated.length; ri++) riskPrefixSum[ri + 1] = riskPrefixSum[ri] + rated[ri].risk;
+    var unratedCount = hasRiskCol ? (records.length - rated.length) : 0;
+
+    state = {
+      records: records, byDept: byDept, maxIdx: maxIdx, minIdx: minIdx, missingCount: missing, fileName: fileName,
+      dateBasisHeader: dateBasisHeader || null, dateBasisKind: dateBasisKind || null,
+      hasRiskCol: !!hasRiskCol, riskIdx: riskIdx, riskPrefixSum: riskPrefixSum, unratedCount: unratedCount,
+    };
+
+    try {
+      localStorage.setItem("reportingPulse.records", JSON.stringify(records));
+      localStorage.setItem("reportingPulse.missing", String(missing));
+      localStorage.setItem("reportingPulse.fileName", fileName);
+      localStorage.setItem("reportingPulse.savedAt", String(Date.now()));
+      localStorage.setItem("reportingPulse.dateBasisHeader", dateBasisHeader || "");
+      localStorage.setItem("reportingPulse.dateBasisKind", dateBasisKind || "");
+      localStorage.setItem("reportingPulse.hasRiskCol", hasRiskCol ? "1" : "0");
+    } catch (e) { /* storage unavailable — fine, just no caching */ }
+
+    landing.hidden = true;
+    shell.hidden = false;
+
+    var presentLowVolume = Object.keys(byDept).filter(function (d) {
+      return LOW_VOLUME_DEPTS.indexOf(d.trim().toLowerCase()) !== -1;
+    });
+
+    document.getElementById("filechip").innerHTML =
+      "<strong class=\"fname\" title=\"" + escapeHtml(fileName) + "\">" + escapeHtml(fileName) + "</strong> · " +
+      records.length.toLocaleString() + " reports · " + fmtShort(minIdx) + " – " + fmtShort(maxIdx) +
+      (presentLowVolume.length
+        ? '<div class="filecaveat">' + presentLowVolume.map(escapeHtml).join(" and ") + " report far less often than other departments, so small or zero counts there are normal.</div>"
+        : "");
+
+    rangeMode = "7";
+    customStart = customEnd = null;
+    render();
+  }
+
+  (function tryRestore() {
+    try {
+      var raw = localStorage.getItem("reportingPulse.records");
+      if (!raw) return;
+      var records = JSON.parse(raw);
+      if (!records || !records.length) return;
+      var missing = +(localStorage.getItem("reportingPulse.missing") || 0);
+      var fileName = localStorage.getItem("reportingPulse.fileName") || "previous upload";
+      var savedAt = +(localStorage.getItem("reportingPulse.savedAt") || 0);
+      var dateBasisHeader = localStorage.getItem("reportingPulse.dateBasisHeader") || null;
+      var dateBasisKind = localStorage.getItem("reportingPulse.dateBasisKind") || null;
+      var hasRiskCol = localStorage.getItem("reportingPulse.hasRiskCol") === "1";
+      loadRecords(records, missing, fileName, dateBasisHeader, dateBasisKind, hasRiskCol);
+      if (savedAt) {
+        var hrs = (Date.now() - savedAt) / 3600000;
+        if (hrs > 20) {
+          document.getElementById("filechip").innerHTML += '<div class="filecaveat stale">From your last visit. Upload today’s export to refresh.</div>';
+        }
+      }
+    } catch (e) { /* ignore */ }
+  })();
+
+  // ===== Page navigation =====
+  Array.prototype.forEach.call(document.querySelectorAll(".nav-item"), function (btn) {
+    btn.addEventListener("click", function () {
+      var p = btn.getAttribute("data-page");
+      if (p === currentPage) return;
+      currentPage = p;
+      Array.prototype.forEach.call(document.querySelectorAll(".nav-item"), function (b) { b.classList.toggle("active", b === btn); });
+      Array.prototype.forEach.call(document.querySelectorAll(".page"), function (pg) { pg.classList.toggle("active", pg.id === "page-" + p); });
+    });
+  });
+
+  // ===== Range controls =====
+  // "This week" and "Last week"/"Last two weeks" are calendar weeks (Monday–
+  // Sunday), not rolling windows — "Last week" is the complete Mon–Sun week
+  // right before the current one, so it never overlaps "This week". Only
+  // "Last 30 days" stays a true rolling window (it isn't meant to align to
+  // week boundaries).
+  function currentRange() {
+    var end = state.maxIdx, start;
+    var thisWeekStart = mostRecentMonday(state.maxIdx);
+    var lastFullWeekEnd = thisWeekStart - 1; // Sunday before the current week
+    if (rangeMode === "week") {
+      start = thisWeekStart;
+    } else if (rangeMode === "7") {
+      if (lastFullWeekEnd >= state.minIdx) { end = lastFullWeekEnd; start = end - 6; }
+      else { start = end - 6; } // not enough history for a full prior week — fall back to rolling
+    } else if (rangeMode === "14") {
+      if (lastFullWeekEnd >= state.minIdx) { end = lastFullWeekEnd; start = end - 13; }
+      else { start = end - 13; }
+    } else if (rangeMode === "30") {
+      start = end - 29;
+    } else {
+      start = customStart != null ? customStart : mostRecentMonday(end); end = customEnd != null ? customEnd : end;
+    }
+    if (start < state.minIdx) start = state.minIdx;
+    return { start: start, end: end };
+  }
+
+  function buildControls() {
+    var opts = [
+      { key: "week", label: "This week" }, { key: "7", label: "Last week" },
+      { key: "14", label: "Last two weeks" }, { key: "30", label: "Last 30 days" }, { key: "custom", label: "Custom" },
+    ];
+    var row = document.getElementById("controlsRow");
+    row.innerHTML = opts.map(function (o) {
+      return '<button type="button" class="pill' + (rangeMode === o.key ? " active" : "") + '" data-k="' + o.key + '">' + o.label + "</button>";
+    }).join("") + '<span class="custom-dates" id="customDates"><input type="date" id="startDate"> – <input type="date" id="endDate"></span>';
+
+    Array.prototype.forEach.call(row.querySelectorAll(".pill"), function (btn) {
+      btn.addEventListener("click", function () {
+        rangeMode = btn.getAttribute("data-k");
+        if (rangeMode === "custom") {
+          var r = currentRange();
+          customStart = customStart != null ? customStart : r.start;
+          customEnd = customEnd != null ? customEnd : r.end;
+        }
+        render();
+      });
+    });
+
+    var cd = document.getElementById("customDates");
+    if (rangeMode === "custom") {
+      cd.classList.add("show");
+      var sIn = document.getElementById("startDate"), eIn = document.getElementById("endDate");
+      var r = currentRange();
+      sIn.value = isoOf(r.start); eIn.value = isoOf(r.end);
+      sIn.min = isoOf(state.minIdx); sIn.max = isoOf(state.maxIdx);
+      eIn.min = isoOf(state.minIdx); eIn.max = isoOf(state.maxIdx);
+      sIn.addEventListener("change", function () { customStart = idxFromIso(sIn.value); render(); });
+      eIn.addEventListener("change", function () { customEnd = idxFromIso(eIn.value); render(); });
+    }
+  }
+  function isoOf(idx) { var dt = fromDayIndex(idx); return dt.getUTCFullYear() + "-" + pad2(dt.getUTCMonth() + 1) + "-" + pad2(dt.getUTCDate()); }
+  function idxFromIso(s) { var p = s.split("-"); return dayIndex(+p[0], +p[1] - 1, +p[2]); }
+
+  function allDeptNames() { return Object.keys(state.byDept); }
+
+  function lowerBound(list, v) { var lo = 0, hi = list.length; while (lo < hi) { var mid = (lo + hi) >> 1; if (list[mid] < v) lo = mid + 1; else hi = mid; } return lo; }
+  function upperBound(list, v) { var lo = 0, hi = list.length; while (lo < hi) { var mid = (lo + hi) >> 1; if (list[mid] <= v) lo = mid + 1; else hi = mid; } return lo; }
+  function countInRange(list, start, end) { if (!list.length || start > end) return 0; return upperBound(list, end) - lowerBound(list, start); }
+  function totalInRange(start, end) { var t = 0; allDeptNames().forEach(function (d) { t += countInRange(state.byDept[d], start, end); }); return t; }
+
+  // Same lowerBound/upperBound approach as countInRange, applied to the
+  // sorted risk-score list plus its prefix sum, so a range's average risk
+  // (sum of scores / count of rated reports) is two binary searches away.
+  function riskSumCount(start, end) {
+    var list = state.riskIdx;
+    if (!list || !list.length || start > end) return { sum: 0, count: 0 };
+    var lo = lowerBound(list, start), hi = upperBound(list, end);
+    return { sum: state.riskPrefixSum[hi] - state.riskPrefixSum[lo], count: hi - lo };
+  }
+  // Returns null (rather than 0) when a range has no rated reports at all,
+  // so callers can tell "no data" apart from a genuine average of 0.
+  function avgRiskInRange(start, end) {
+    var sc = riskSumCount(start, end);
+    return sc.count ? sc.sum / sc.count : null;
+  }
+
+  // ===== Number count-up animation =====
+  function animateNumber(el, to, opts) {
+    opts = opts || {};
+    var decimals = opts.decimals || 0, suffix = opts.suffix || "", prefix = opts.prefix || "";
+    if (REDUCE_MOTION || typeof to !== "number" || isNaN(to)) {
+      el.textContent = prefix + (typeof to === "number" ? to.toFixed(decimals) : to) + suffix;
+      return;
+    }
+    var from = 0, start = null, dur = 700;
+    function step(ts) {
+      if (start == null) start = ts;
+      var p = Math.min(1, (ts - start) / dur);
+      var eased = 1 - Math.pow(1 - p, 3);
+      var val = from + (to - from) * eased;
+      el.textContent = prefix + val.toFixed(decimals) + suffix;
+      if (p < 1) requestAnimationFrame(step); else el.textContent = prefix + to.toFixed(decimals) + suffix;
+    }
+    requestAnimationFrame(step);
+  }
+
+  // ===== Period bucket + significance engine =====
+  // Trailing buckets of `periodDays` length, anchored at `anchorEnd` (defaults
+  // to the latest data), oldest first. Only "full" buckets (a complete period
+  // within the file's date range) are used for significance testing — a
+  // truncated edge bucket would read artificially low.
+  function periodBuckets(getCount, periodDays, maxPeriods, anchorEnd) {
+    var buckets = [], cursor = anchorEnd != null ? anchorEnd : state.maxIdx;
+    for (var i = 0; i < maxPeriods && cursor >= state.minIdx; i++) {
+      var bStart = cursor - periodDays + 1;
+      var full = bStart >= state.minIdx;
+      var actualStart = Math.max(state.minIdx, bStart);
+      buckets.push({ start: actualStart, end: cursor, total: getCount(actualStart, cursor), full: full });
+      cursor = bStart - 1;
+    }
+    buckets.reverse();
+    return buckets;
+  }
+  // Trailing calendar weeks (Monday–Sunday), oldest first — used by the
+  // Trends & Significance page. Anchoring on state.maxIdx directly (the old
+  // approach) produced "weeks" that were just rolling 7-day windows ending
+  // on whatever weekday the export happened to land on (e.g. Wed–Wed), which
+  // don't match real weeks and silently paired mismatched weekdays when
+  // testing for significance. This anchors on the most recent Monday
+  // instead, so every bucket is a real Mon–Sun week. If the file's last day
+  // isn't a Sunday, the current week is still in progress: it's appended as
+  // a trailing, non-"full" bucket so it still shows on the chart but is
+  // excluded from the significance pool and the "stood out" tables (you
+  // can't fairly compare a partial week's total to complete weeks).
+  function weeklyBuckets(getCount, weeks) {
+    var latestMonday = mostRecentMonday(state.maxIdx);
+    var currentWeekComplete = state.maxIdx === latestMonday + 6;
+    var lastFullWeekEnd = currentWeekComplete ? state.maxIdx : latestMonday - 1;
+    var buckets = periodBuckets(getCount, 7, weeks, lastFullWeekEnd);
+    if (!currentWeekComplete && latestMonday <= state.maxIdx) {
+      buckets.push({ start: latestMonday, end: state.maxIdx, total: getCount(latestMonday, state.maxIdx), full: false });
+    }
+    return buckets;
+  }
+
+  // For a partial "this week" period (fewer than 7 days elapsed so far),
+  // compare against the same first N weekdays of each prior week — e.g.
+  // Mon–Wed of this week against Mon–Wed of every earlier week — rather than
+  // arbitrary N-day slices ending on today's weekday, which would pair up
+  // mismatched days (a Fri–Sun slice against a Mon–Wed one, say) and skew
+  // the "is this normal" comparison.
+  function partialWeekBuckets(getCount, daysElapsed, maxWeeks) {
+    var monday = mostRecentMonday(state.maxIdx);
+    var buckets = [];
+    for (var i = 0; i < maxWeeks; i++) {
+      var wMonday = monday - 7 * i;
+      var bEnd = wMonday + daysElapsed - 1;
+      if (bEnd < state.minIdx) break;
+      var full = wMonday >= state.minIdx;
+      var actualStart = Math.max(state.minIdx, wMonday);
+      buckets.push({ start: actualStart, end: bEnd, total: getCount(actualStart, bEnd), full: full });
+    }
+    buckets.reverse();
+    return buckets;
+  }
+
+  // How many trailing periods to pull for a given period length: aim for
+  // roughly a year of lookback, but keep enough for a valid significance
+  // test on long periods and cap the total for very short ones.
+  function periodCountFor(periodDays) {
+    return Math.max(10, Math.min(60, Math.round(370 / periodDays)));
+  }
+
+  // Leave-one-out z-score against the trailing-12-month pool of full weeks.
+  // Default sigma floor = sqrt(mean) (Poisson-like), which guards against a
+  // near-flat baseline producing an absurdly large z from ordinary variation
+  // in discrete report COUNTS. That floor doesn't make sense for a
+  // continuous metric like an average risk score (its units aren't "events
+  // per period"), so opts.floorMode:"sd" switches to a floor based purely on
+  // the pool's own spread, with a small numeric floor (opts.minFloor) just
+  // to avoid dividing by zero if a run of periods happens to tie exactly.
+  function annotateSignificance(buckets, opts) {
+    opts = opts || {};
+    var floorMode = opts.floorMode || "poisson";
+    var minFloor = opts.minFloor != null ? opts.minFloor : 0.5;
+    var full = buckets.filter(function (b) { return b.full; });
+    var totals = full.map(function (b) { return b.total; });
+    full.forEach(function (b, i) {
+      var pool = totals.slice(0, i).concat(totals.slice(i + 1));
+      if (pool.length < 8) { b.sig = null; return; }
+      var m = mean(pool);
+      var sd = sampleStd(pool, m);
+      var eff = floorMode === "poisson" ? Math.max(sd, Math.sqrt(Math.max(m, 0)), minFloor) : Math.max(sd, minFloor);
+      var z = (b.total - m) / eff;
+      var conf = confidenceFromZ(z);
+      var dir = b.total < m ? "down" : "up";
+      var cls = Math.abs(z) >= 3 ? "significant" : (Math.abs(z) >= 2 ? "notable" : "normal");
+      b.sig = { mean: m, sigma: eff, z: z, confidence: conf, dir: dir, cls: cls, key: cls === "normal" ? "normal" : (cls + "-" + dir) };
+    });
+    return buckets;
+  }
+
+  function sigLabel(sig) {
+    if (!sig) return "Insufficient history";
+    if (sig.cls === "normal") return "Within normal range";
+    var word = sig.cls === "significant" ? "Significantly" : "Notably";
+    return word + " " + (sig.dir === "down" ? "low" : "high");
+  }
+
+  // ===== Render dispatch =====
+  function render() {
+    buildControls();
+    var range = currentRange();
+
+    var basisLine = state.dateBasisHeader ? "Dated by " + escapeHtml(state.dateBasisHeader) : "iQSMS report-list export";
+
+    renderKpis(range);
+
+    // Overview's "is this normal" card + recent-volume chart follow the date
+    // filter selected up top: the period length (and its end date) match
+    // whatever range is currently picked, so switching to "Last 30 days"
+    // re-tests 30-day periods instead of always testing single weeks.
+    // "This week" is special-cased: its comparison pool has to step back in
+    // whole weeks (Mon-anchored) rather than in periodDays-sized chunks, or
+    // a partial week-to-date would get compared against arbitrary slices of
+    // earlier weeks that don't share the same weekdays. "Last week" and
+    // "Last two weeks" don't need this — currentRange() already anchors them
+    // on a Sunday and their length is a whole multiple of 7, so plain
+    // periodBuckets stays calendar-aligned on its own.
+    var periodDays = range.end - range.start + 1;
+    var overviewBuckets = rangeMode === "week"
+      ? partialWeekBuckets(totalInRange, periodDays, periodCountFor(7))
+      : periodBuckets(totalInRange, periodDays, periodCountFor(periodDays), range.end);
+    annotateSignificance(overviewBuckets);
+    renderOverviewSignificance(overviewBuckets, periodDays, rangeMode);
+
+    // Trends & Significance page keeps its own fixed trailing-12-month weekly
+    // view regardless of the top filter — its whole point is the full-year
+    // picture, so it isn't meant to shrink down to a custom date range.
+    var sigBuckets = weeklyBuckets(totalInRange, 52);
+    annotateSignificance(sigBuckets);
+    renderTrendPage(sigBuckets);
+
+    // Risk Trend page reuses this exact same bucket/significance engine —
+    // just swapping the report-count getter (totalInRange) for the
+    // average-risk getter (avgRiskInRange) — so it follows the same top
+    // filter as Overview and the same fixed 6-month view as Trends.
+    renderRiskPage(range, rangeMode, periodDays);
+
+    renderGrid(range);
+    renderBasisNote();
+  }
+
+  function renderBasisNote() {
+    var el = document.getElementById("basisNote");
+    if (!el) return;
+    if (!state.dateBasisHeader) { el.textContent = ""; return; }
+    if (state.dateBasisKind === "created") {
+      el.innerHTML = "Counts use <strong>" + escapeHtml(state.dateBasisHeader) + "</strong> — when each report was logged in iQSMS — which is what a reporting-rate view should track.";
+    } else if (state.dateBasisKind === "due") {
+      el.innerHTML = "This file has no creation/submission-date column, so counts fall back to <strong>" + escapeHtml(state.dateBasisHeader) + "</strong> — usually the event date plus a fixed CAA window, not when the report was actually logged.";
+    } else {
+      el.innerHTML = "This file has no creation/submission-date column, so counts fall back to <strong>" + escapeHtml(state.dateBasisHeader) + "</strong> — the event date, not when the report was logged.";
+    }
+  }
+
+  function renderKpis(range) {
+    var days = range.end - range.start + 1;
+    var total = 0, activeDepts = 0;
+    allDeptNames().forEach(function (d) {
+      var c = countInRange(state.byDept[d], range.start, range.end);
+      total += c;
+      if (c > 0) activeDepts++;
+    });
+    var totalDepts = allDeptNames().length;
+    var dailyAvg = total / days;
+
+    // Shifting back by exactly 7 days (not by `days`) keeps the comparison on
+    // the same weekdays for a partial "This week" — e.g. Mon–Wed vs. last
+    // week's Mon–Wed, not Mon–Wed vs. the immediately preceding Fri–Sun.
+    // For "Last week"/"Last two weeks" this is equivalent to shifting back by
+    // `days` anyway, since 7 and 14 are themselves whole weeks.
+    var shift = rangeMode === "week" ? 7 : days;
+    var priorStart = range.start - shift, priorEnd = range.end - shift;
+    var havePrior = priorStart >= state.minIdx;
+    var priorTotal = havePrior ? totalInRange(priorStart, priorEnd) : null;
+    var pct = (havePrior && priorTotal > 0) ? Math.round(((total - priorTotal) / priorTotal) * 100) : null;
+
+    var icons = {
+      total: '<svg viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+      avg: '<svg viewBox="0 0 24 24" fill="none"><path d="M4 16a8 8 0 0 1 16 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M12 16l4-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="16" r="1.1" fill="currentColor"/></svg>',
+      dept: '<svg viewBox="0 0 24 24" fill="none"><rect x="4" y="9" width="6.5" height="11" stroke="currentColor" stroke-width="1.7"/><rect x="13.5" y="4" width="6.5" height="16" stroke="currentColor" stroke-width="1.7"/><path d="M6.5 12.2h1.5M6.5 15h1.5M16 7.2h1.5M16 10h1.5M16 12.8h1.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>',
+      delta: '<svg viewBox="0 0 24 24" fill="none"><path d="M4 15l5-5 4 4 7-7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 6.5h5V11.5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    };
+
+    var kpis = [
+      { icon: icons.total, label: "Total reports", to: total, decimals: 0, sub: fmtShort(range.start) + " – " + fmtShort(range.end) },
+      { icon: icons.avg, label: "Daily average", to: dailyAvg, decimals: 1, sub: "reports / day" },
+      { icon: icons.dept, label: "Departments reporting", to: activeDepts, decimals: 0, small: "/" + totalDepts, sub: "logged ≥ 1 report" },
+      pct == null
+        ? { icon: icons.delta, label: "Vs. prior period", value: "—", sub: "not enough history yet", cls: "flat" }
+        : { icon: icons.delta, label: "Vs. prior period", to: pct, decimals: 0, suffix: "%", forceSign: true, sub: priorTotal + " reports before that", cls: pct > 0 ? "up" : (pct < 0 ? "down" : "flat") },
+    ];
+
+    var wrap = document.getElementById("kpis");
+    wrap.innerHTML = kpis.map(function (k, i) {
+      return '<div class="kpi"><div class="kpi-top"><span class="label">' + k.label + '</span><span class="kpi-badge">' + k.icon + '</span></div>' +
+        '<div class="value"><span data-count="' + i + '">' + (k.value != null ? k.value : "0") + '</span>' + (k.small ? "<small>" + k.small + "</small>" : "") + '</div>' +
+        '<div class="delta ' + (k.cls || "flat") + '">' + k.sub + "</div></div>";
+    }).join("");
+
+    kpis.forEach(function (k, i) {
+      if (k.to == null) return;
+      var el = wrap.querySelector('[data-count="' + i + '"]');
+      var prefix = k.forceSign && k.to > 0 ? "+" : "";
+      animateNumber(el, k.to, { decimals: k.decimals, suffix: k.suffix || "", prefix: prefix });
+    });
+  }
+
+  // Wording for the range currently picked up top. "This week"/"Last week"/
+  // "Last two weeks" are calendar weeks (see currentRange), so they get their
+  // own phrasing rather than being inferred from periodDays alone — two
+  // different modes can both span exactly 7 days (e.g. viewing "This week"
+  // on a Sunday), and they still need to read correctly as distinct periods.
+  function rangePhrase(mode, days) {
+    // "tag" is the short in-chart marker label (space is tight on the bell
+    // curve svg); "subject" is the fuller phrase used in the caption sentence.
+    if (mode === "week") return { subject: "This week", tag: "This week", question: "Is this week normal?", bars: "Recent weekly volume" };
+    if (mode === "7") return { subject: "Last week", tag: "Last week", question: "Is last week normal?", bars: "Recent weekly volume" };
+    if (mode === "14") return { subject: "The last two weeks", tag: "Last 2 wks", question: "Is the last two weeks normal?", bars: "Recent two-week periods" };
+    if (mode === "30") return { subject: "The last 30 days", tag: "Last 30d", question: "Is the last 30 days normal?", bars: "Recent 30-day periods" };
+    return { subject: "This period", tag: "This period", question: "Is this " + days + "-day period normal?", bars: "Recent " + days + "-day periods" };
+  }
+
+  // "the last two weeks" -> "the last two weeks'"; "this week" -> "this week's".
+  function possessive(s) { return s + (/s$/i.test(s) ? "'" : "'s"); }
+
+  // ---- Overview: "is this period normal" gauge + recent-periods bars ----
+  // Both follow the date filter selected up top — periodDays is that filter's
+  // length in days (7 for "This week"/"Last week", 30 for "Last 30 days", the
+  // custom span's length for Custom, etc.), so the wording and comparison
+  // window adapt with it instead of always testing a fixed calendar week.
+  function renderOverviewSignificance(buckets, periodDays, rangeMode) {
+    var fullBuckets = buckets.filter(function (b) { return b.full; });
+    var latest = fullBuckets.length ? fullBuckets[fullBuckets.length - 1] : null;
+    var phrase = rangePhrase(rangeMode, periodDays);
+
+    var titleEl = document.getElementById("sigSectionTitle");
+    titleEl.textContent = phrase.question;
+
+    document.getElementById("sigWeekNote").textContent = latest ? fmtShort(latest.start) + " – " + fmtShort(latest.end) : "";
+
+    var card = document.getElementById("sigCard");
+    if (!latest || !latest.sig) {
+      card.innerHTML = '<div class="sig-body"><span class="sig-tag unknown">Not enough history</span>' +
+        '<p class="sig-headline">Can’t tell yet</p>' +
+        '<p class="sig-detail">This file needs more history at this period length before a "normal range" can be estimated.</p></div>';
+    } else {
+      var s = latest.sig;
+      var colorVar = s.cls === "normal" ? "var(--good)" : (s.dir === "down" ? (s.cls === "significant" ? "var(--serious)" : "var(--warn)") : "var(--good)");
+      var tagClass = s.cls === "normal" ? "normal" : (s.cls + "-" + s.dir);
+      // Actual vs. expected reads as a bullet chart: one track, Actual as a
+      // filled bar in the status color, Expected as a slim neutral tick
+      // marking where "normal" would land — no second colored bar to clash.
+      var scale = Math.max(latest.total, s.mean, 1) * 1.1;
+      var actualPct = (latest.total / scale * 100).toFixed(1);
+      var expectedPct = (s.mean / scale * 100).toFixed(1);
+      card.innerHTML =
+        '<div class="sig-body">' +
+        '<span class="sig-tag ' + tagClass + '">' + sigLabel(s) + '</span>' +
+        '<div class="cmp-wrap">' +
+        '<div class="cmp-track">' +
+        '<div class="cmp-fill" data-target-width="' + actualPct + '" style="width:' + (REDUCE_MOTION ? actualPct : 0) + '%;background:' + colorVar + '"></div>' +
+        '<div class="cmp-target" data-target-left="' + expectedPct + '" style="left:' + (REDUCE_MOTION ? expectedPct : 0) + '%"></div>' +
+        '</div>' +
+        '<div class="cmp-labels">' +
+        '<span class="cmp-label-item"><span class="cmp-swatch" style="background:' + colorVar + '"></span>Actual<strong>' + latest.total + '</strong></span>' +
+        '<span class="cmp-label-item"><span class="cmp-swatch target"></span>Expected<strong>' + s.mean.toFixed(1) + '</strong></span>' +
+        '</div>' +
+        '</div>' +
+        '</div>';
+      if (!REDUCE_MOTION) {
+        var fills = card.querySelectorAll("[data-target-width]");
+        var targets = card.querySelectorAll("[data-target-left]");
+        requestAnimationFrame(function () {
+          requestAnimationFrame(function () {
+            Array.prototype.forEach.call(fills, function (elx) { elx.style.width = elx.getAttribute("data-target-width") + "%"; });
+            Array.prototype.forEach.call(targets, function (elx) { elx.style.left = elx.getAttribute("data-target-left") + "%"; });
+          });
+        });
+      }
+    }
+
+    renderDistChart(latest && latest.sig ? latest.sig : null, phrase.subject, phrase.tag);
+
+    document.getElementById("barsHeadLabel").textContent = phrase.bars;
+    renderBarChart("barsOverview", "legendOverview", buckets.slice(-12), null);
+  }
+
+  // Plots the selected period's z-score on the normal distribution, shaded by
+  // the same normal/notable/significant tiers used throughout the app
+  // (|z|<2, 2–3, >3). svgId/captionId let a second copy of this chart live on
+  // another page (the Risk Trend page); invert flips which side of zero
+  // counts as "good" for metrics where high is bad (a risk score) rather
+  // than low is bad (a report count).
+  function renderDistChart(sig, subject, tag, svgId, captionId, invert) {
+    var svg = document.getElementById(svgId || "distChart");
+    var caption = document.getElementById(captionId || "distCaption");
+    if (!svg || !caption) return;
+
+    var W = 660, H = 170;
+    var padL = 26, padR = 26, padT = 18, padB = 30;
+    var plotW = W - padL - padR, plotH = H - padT - padB;
+    var xMin = -4, xMax = 4;
+    function xToPx(z) { return padL + (z - xMin) / (xMax - xMin) * plotW; }
+    function pdf(z) { return Math.exp(-0.5 * z * z) / Math.sqrt(2 * Math.PI); }
+    var yMax = pdf(0) * 1.08;
+    function yToPx(v) { return padT + plotH - (v / yMax) * plotH; }
+
+    var NS = "http://www.w3.org/2000/svg";
+    function el(tag, attrs) {
+      var e = document.createElementNS(NS, tag);
+      for (var k in attrs) e.setAttribute(k, attrs[k]);
+      return e;
+    }
+
+    svg.innerHTML = "";
+    svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+
+    var regions = [
+      { from: -4, to: -3, color: "var(--serious)", op: 0.16 },
+      { from: -3, to: -2, color: "var(--warn)", op: 0.16 },
+      { from: -2, to: 2, color: "var(--good)", op: 0.10 },
+      { from: 2, to: 3, color: "var(--warn)", op: 0.16 },
+      { from: 3, to: 4, color: "var(--serious)", op: 0.16 },
+    ];
+    regions.forEach(function (r) {
+      var pts = [], steps = 30;
+      for (var i = 0; i <= steps; i++) {
+        var z = r.from + (r.to - r.from) * (i / steps);
+        pts.push(xToPx(z) + "," + yToPx(pdf(z)));
+      }
+      var d = "M " + xToPx(r.from) + "," + yToPx(0) + " L " + pts.join(" L ") + " L " + xToPx(r.to) + "," + yToPx(0) + " Z";
+      svg.appendChild(el("path", { d: d, fill: r.color, "fill-opacity": r.op, stroke: "none" }));
+    });
+
+    svg.appendChild(el("line", { class: "dist-axis", x1: padL, y1: yToPx(0), x2: W - padR, y2: yToPx(0) }));
+
+    var curvePts = [];
+    for (var x = xMin; x <= xMax + 1e-9; x += 0.08) curvePts.push(xToPx(x) + "," + yToPx(pdf(x)));
+    svg.appendChild(el("path", { class: "dist-curve", d: "M " + curvePts.join(" L "), fill: "none" }));
+
+    [-3, -2, -1, 0, 1, 2, 3].forEach(function (z) {
+      var x = xToPx(z);
+      if (z === -3 || z === -2 || z === 2 || z === 3) {
+        svg.appendChild(el("line", { class: "dist-zline", x1: x, y1: padT, x2: x, y2: yToPx(0) }));
+      }
+      var t = el("text", { class: "dist-ztick", x: x, y: yToPx(0) + 16 });
+      t.textContent = (z > 0 ? "+" : "") + z + "σ";
+      svg.appendChild(t);
+    });
+
+    function regionLabel(text, zFrom, zTo, color) {
+      var x = (xToPx(zFrom) + xToPx(zTo)) / 2;
+      var t = el("text", { class: "dist-region-label", x: x, y: padT + 8, fill: color });
+      t.textContent = text;
+      svg.appendChild(t);
+    }
+    regionLabel("Significant", -4, -3, "var(--serious-ink)");
+    regionLabel("Notable", -3, -2, "var(--warn)");
+    regionLabel("Normal", -2, 2, "var(--good)");
+    regionLabel("Notable", 2, 3, "var(--warn)");
+    regionLabel("Significant", 3, 4, "var(--serious-ink)");
+
+    if (sig) {
+      var zc = Math.max(xMin + 0.15, Math.min(xMax - 0.15, sig.z));
+      var mx = xToPx(zc), my = yToPx(pdf(zc));
+      var colorDir = invert ? (sig.dir === "down" ? "up" : "down") : sig.dir;
+      var markerColor = sig.cls === "normal" ? "var(--good)" : (colorDir === "down" ? (sig.cls === "significant" ? "var(--serious)" : "var(--warn)") : "var(--good)");
+      svg.appendChild(el("line", { class: "dist-marker-line", x1: mx, y1: yToPx(0), x2: mx, y2: my, stroke: markerColor }));
+      svg.appendChild(el("circle", { class: "dist-marker-dot", cx: mx, cy: my, r: 5, fill: markerColor }));
+      var tagY = my > padT + 26 ? my - 12 : my + 20;
+      var tagEl = el("text", { class: "dist-marker-tag", x: mx, y: tagY, fill: markerColor });
+      tagEl.textContent = tag || subject;
+      svg.appendChild(tagEl);
+      caption.textContent = subject + " sits at " + (sig.z > 0 ? "+" : "") + sig.z.toFixed(2) + "σ from the historical average.";
+    } else {
+      caption.textContent = "Not enough history yet to place this period on the curve.";
+    }
+  }
+
+  // opts lets a second, differently-worded copy of this chart serve a
+  // different metric (the Risk Trend page's average-risk bars) without
+  // touching the report-count behavior at the existing call sites:
+  //   fmtVal(v)     — number formatter (default: as-is, for integer counts)
+  //   unitLabel     — tooltip unit, e.g. "reports" or "avg risk score"
+  //   baselineUnit  — text after the baseline value (default "/wk avg")
+  //   partialLabel  — suffix for a non-"full" bucket (default " (partial week)")
+  //   noDataLabel   — tooltip text when a bucket's total is null (no data)
+  //   invert        — true when a *higher* value is the bad direction (risk),
+  //                   so the up/down color mapping flips
+  //   legendWarnLabel / legendSeriousLabel — override the two flagged-tier
+  //                   legend lines (default wording assumes report counts)
+  function renderBarChart(barsId, legendId, buckets, baselineVal, opts) {
+    opts = opts || {};
+    var fmtVal = opts.fmtVal || function (v) { return String(v); };
+    var unitLabel = opts.unitLabel || "reports";
+    var baselineUnit = opts.baselineUnit || "/wk avg";
+    var partialLabel = opts.partialLabel != null ? opts.partialLabel : " (partial week)";
+    var noDataLabel = opts.noDataLabel || "no data this week";
+    var invert = !!opts.invert;
+    var values = buckets.map(function (b) { return b.total == null ? 0 : b.total; });
+    var maxVal = Math.max.apply(null, values.concat([baselineVal || 0, 1]));
+    var barsEl = document.getElementById(barsId);
+    var baselineHtml = baselineVal != null
+      ? '<div class="baseline-line" style="bottom:' + (baselineVal / maxVal * 100).toFixed(1) + '%"></div>' +
+        '<div class="baseline-label" style="bottom:' + (baselineVal / maxVal * 100).toFixed(1) + '%">' + fmtVal(baselineVal) + ' ' + baselineUnit + '</div>'
+      : "";
+    // A fixed line right where every bar's foot lands (see .bars-axis and
+    // .bar-col .wk-label in the CSS) — without it, bars of very different
+    // heights can visually read as starting from different places instead
+    // of moving up and down off one shared zero.
+    var axisHtml = '<div class="bars-axis"></div>';
+    // With many weeks on screen (the 52-week Trends chart), a label under every
+    // bar overlaps into an unreadable smear — thin to ~13 evenly-spaced ticks
+    // and lean on the title tooltip for the rest. The short 12-week Overview
+    // chart has room to label every bar.
+    var dense = buckets.length > 16;
+    var labelStep = dense ? Math.ceil(buckets.length / 13) : 1;
+    barsEl.innerHTML = axisHtml + baselineHtml + buckets.map(function (b, i) {
+      var v = values[i];
+      var h = maxVal ? (v / maxVal * 100) : 0;
+      var sig = b.sig;
+      var dir = sig ? (invert ? (sig.dir === "down" ? "up" : "down") : sig.dir) : null;
+      var flagClass = sig && sig.cls !== "normal" ? " flag-" + sig.cls + "-" + dir : "";
+      var markHtml = sig && sig.cls !== "normal" ? '<span class="bar-mark ' + sig.cls + "-" + dir + '" title="' + sigLabel(sig) + " (" + (sig.z > 0 ? "+" : "") + sig.z.toFixed(2) + 'σ)"></span>' : "";
+      var isLast = i === buckets.length - 1;
+      var showLabel = !dense || isLast || i % labelStep === 0;
+      var valueText = b.total == null ? noDataLabel : (fmtVal(b.total) + " " + unitLabel);
+      var title = fmtShort(b.start) + ' – ' + fmtShort(b.end) + ': ' + valueText + (b.full ? "" : partialLabel);
+      return '<div class="bar-col' + (isLast ? " is-now" : "") + '" title="' + title + '">' +
+        markHtml +
+        (dense ? "" : '<div class="bar-val">' + (b.total == null ? "–" : fmtVal(b.total)) + '</div>') +
+        '<div class="bar' + (isLast ? " now" : "") + flagClass + '" data-h="' + h.toFixed(1) + '" style="height:' + (REDUCE_MOTION ? h.toFixed(1) : 0) + '%"></div>' +
+        '<div class="wk-label">' + (showLabel ? fmtShort(b.start) : "") + "</div></div>";
+    }).join("");
+
+    if (!REDUCE_MOTION) {
+      var barsEls = barsEl.querySelectorAll(".bar");
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          Array.prototype.forEach.call(barsEls, function (el) { el.style.height = el.getAttribute("data-h") + "%"; });
+        });
+      });
+    }
+
+    document.getElementById(legendId).innerHTML =
+      '<span class="legend-item"><span class="legend-dot up"></span>Most recent</span>' +
+      '<span class="legend-item"><span class="legend-dot notable-down"></span>' + (opts.legendWarnLabel || "Notably low (2σ+ from typical)") + '</span>' +
+      '<span class="legend-item"><span class="legend-dot significant-down"></span>' + (opts.legendSeriousLabel || "Significantly low (3σ+ from typical)") + '</span>';
+  }
+
+  // ---- Trends & Significance page ----
+  function renderTrendPage(buckets) {
+    var fullBuckets = buckets.filter(function (b) { return b.full; });
+
+    // The bar chart itself only shows the most recent ~6 months (26 weeks) —
+    // 12 months of weekly bars packed into this width gets hard to read.
+    // Significance testing below still draws on the full 12-month pool
+    // (fullBuckets, unsliced) so "weeks that stood out" isn't shortened too.
+    var chartBuckets = buckets.slice(-26);
+    var chartFull = chartBuckets.filter(function (b) { return b.full; });
+    var chartHasPartial = chartBuckets.length > 0 && !chartBuckets[chartBuckets.length - 1].full;
+
+    document.getElementById("trendNote").textContent = chartFull.length
+      ? chartFull.length + " complete weeks shown (Mon–Sun), " + fmtShort(chartFull[0].start) + " – " + fmtShort(chartFull[chartFull.length - 1].end) +
+        (chartHasPartial ? " · plus this week so far" : "")
+      : "Not enough history yet";
+
+    renderBarChart("barsTrend", "legendTrend", chartBuckets, null);
+
+    var flaggedCount = fullBuckets.filter(function (b) { return b.sig && b.sig.cls !== "normal"; }).length;
+    var badge = document.getElementById("navSigBadge");
+    if (flaggedCount) { badge.hidden = false; badge.textContent = flaggedCount; } else { badge.hidden = true; }
+
+    // Weeks that stood out (org-wide)
+    var flagged = fullBuckets.filter(function (b) { return b.sig && b.sig.cls !== "normal"; })
+      .sort(function (a, b) { return Math.abs(b.sig.z) - Math.abs(a.sig.z); });
+    var shown = flagged.slice(0, 12);
+    // Looked up by the wrapper's own stable id, not the table's parentElement
+    // — the "empty" branch below replaces the table with an empty-note div,
+    // so a naive parentElement chase would find nothing on the render after
+    // that (this bit a synthetic all-uniform test dataset where the org-wide
+    // pool never has a flagged week, two renders in a row).
+    var sigWeeksWrap = document.getElementById("sigWeeksWrap");
+    if (!shown.length) {
+      sigWeeksWrap.innerHTML = '<div class="empty-note">No weeks in the last 12 months fall outside this org\'s normal range — nothing to show here right now.</div>';
+    } else {
+      sigWeeksWrap.innerHTML = '<table id="sigWeeksTable"></table>';
+      document.getElementById("sigWeeksTable").innerHTML =
+        "<thead><tr><th class=\"left\">Week</th><th>Total</th><th>Expected</th><th>Z-score</th><th class=\"total-col\">Status</th></tr></thead><tbody>" +
+        shown.map(function (b) {
+          var s = b.sig;
+          var chipCls = s.dir === "down" ? (s.cls === "significant" ? "serious" : "warn") : "good";
+          return "<tr><td class=\"left\">" + fmtShort(b.start) + " – " + fmtShort(b.end) + "</td><td>" + b.total + "</td><td>" + s.mean.toFixed(1) +
+            "</td><td>" + (s.z > 0 ? "+" : "") + s.z.toFixed(2) + "</td>" +
+            "<td class=\"chip-cell-mid\"><span class=\"chip " + chipCls + "\">" + sigLabel(s) + "</span></td></tr>";
+        }).join("") + "</tbody>" +
+        (flagged.length > shown.length ? "" : "");
+    }
+
+    // Departments with a significant week (most severe week per dept, gated on baseline volume)
+    var deptRows = [];
+    allDeptNames().forEach(function (dept) {
+      var db = weeklyBuckets(function (s, e) { return countInRange(state.byDept[dept], s, e); }, 52);
+      annotateSignificance(db);
+      var recentFull = db.filter(function (b) { return b.full; }).slice(-12);
+      var candidates = recentFull.filter(function (b) { return b.sig && b.sig.cls !== "normal" && b.sig.mean >= 1.5; });
+      if (!candidates.length) return;
+      candidates.sort(function (a, b) { return Math.abs(b.sig.z) - Math.abs(a.sig.z); });
+      var top = candidates[0];
+      deptRows.push({ dept: dept, bucket: top });
+    });
+    deptRows.sort(function (a, b) { return Math.abs(b.bucket.sig.z) - Math.abs(a.bucket.sig.z); });
+    deptRows = deptRows.slice(0, 8);
+
+    var sigDeptWrap = document.getElementById("sigDeptWrap");
+    if (!deptRows.length) {
+      sigDeptWrap.innerHTML = '<div class="empty-note">No department has had a statistically unusual week in the last 12 weeks.</div>';
+    } else {
+      sigDeptWrap.innerHTML = '<table id="sigDeptTable"></table>';
+      document.getElementById("sigDeptTable").innerHTML =
+        "<thead><tr><th class=\"left\">Department</th><th class=\"left\">Week</th><th>Reports</th><th>Expected</th><th>Z-score</th><th class=\"total-col\">Status</th></tr></thead><tbody>" +
+        deptRows.map(function (r) {
+          var s = r.bucket.sig;
+          var chipCls = s.dir === "down" ? (s.cls === "significant" ? "serious" : "warn") : "good";
+          return "<tr><td class=\"dept\">" + escapeHtml(r.dept) + "</td><td class=\"left\">" + fmtShort(r.bucket.start) + " – " + fmtShort(r.bucket.end) + "</td><td>" + r.bucket.total +
+            "</td><td>" + s.mean.toFixed(1) + "</td><td>" + (s.z > 0 ? "+" : "") + s.z.toFixed(2) + "</td>" +
+            "<td class=\"chip-cell-mid\"><span class=\"chip " + chipCls + "\">" + sigLabel(s) + "</span></td></tr>";
+        }).join("") + "</tbody>";
+    }
+
+    renderBeforeNow();
+  }
+
+  function renderBeforeNow() {
+    var end = state.maxIdx;
+    var nowLen = Math.min(14, end - state.minIdx + 1);
+    var nowStart = end - nowLen + 1;
+    var nowWeeks = nowLen / 7;
+    var beforeEnd = nowStart - 1;
+    var beforeStart = Math.max(state.minIdx, beforeEnd - 55);
+    var beforeLen = beforeEnd - beforeStart + 1;
+    var beforeWeeks = beforeLen / 7;
+    var haveBefore = beforeLen >= 7;
+
+    document.getElementById("beforeNowNote").textContent = haveBefore
+      ? "Now: " + fmtShort(nowStart) + "–" + fmtShort(end) + " (" + nowLen + "d)  ·  Before: " + fmtShort(beforeStart) + "–" + fmtShort(beforeEnd) + " avg/wk"
+      : "Not enough history yet for a before/now comparison";
+
+    var deptRows = allDeptNames().map(function (d) {
+      var nowCnt = countInRange(state.byDept[d], nowStart, end);
+      var beforeCnt = haveBefore ? countInRange(state.byDept[d], beforeStart, beforeEnd) : 0;
+      return { dept: d, nowCnt: nowCnt, beforeCnt: beforeCnt, nowRate: nowCnt / nowWeeks, beforeRate: haveBefore ? beforeCnt / beforeWeeks : null };
+    }).filter(function (r) { return r.nowCnt > 0 || r.beforeCnt > 0; })
+      .sort(function (a, b) { return (b.beforeCnt + b.nowCnt) - (a.beforeCnt + a.nowCnt); });
+
+    var thead = "<thead><tr><th class=\"dept-col\">Department</th><th>Before (/wk)</th><th>Now (/wk)</th><th class=\"total-col\">Change</th></tr></thead>";
+    var tbody = "<tbody>" + deptRows.map(function (r) {
+      var chip;
+      if (r.beforeRate == null || r.beforeCnt === 0) {
+        chip = '<span class="chip na" title="No reports in the before window">new</span>';
+      } else if (r.beforeRate < 0.5) {
+        chip = '<span class="chip na" title="Only ' + r.beforeCnt + ' report' + (r.beforeCnt === 1 ? "" : "s") + ' before this window — too few for a reliable percentage">n/a</span>';
+      } else {
+        var pct = ((r.nowRate - r.beforeRate) / r.beforeRate) * 100;
+        var sign = pct > 0 ? "+" : "";
+        var cls = "up";
+        if (pct <= -50) cls = "serious"; else if (pct <= -25) cls = "warn"; else if (Math.abs(pct) < 10) cls = "flat";
+        chip = '<span class="chip ' + cls + '">' + sign + Math.round(pct) + "%</span>";
+      }
+      return "<tr><td class=\"dept\">" + escapeHtml(r.dept) + "</td><td class=\"rate\">" + (r.beforeRate == null ? "—" : r.beforeRate.toFixed(2)) +
+        "</td><td class=\"rate\">" + r.nowRate.toFixed(2) + "</td><td class=\"chip-cell\">" + chip + "</td></tr>";
+    }).join("") + "</tbody>";
+    document.getElementById("beforeNowTable").innerHTML = thead + tbody;
+  }
+
+  // ---- Risk Trend page ----
+  // Reuses the exact same bucket/significance engine as Overview and Trends
+  // & Significance — periodBuckets / weeklyBuckets / partialWeekBuckets /
+  // annotateSignificance — just swapping the getter from totalInRange
+  // (report counts) to avgRiskInRange (average risk score). The only real
+  // difference is the significance floor: report counts get the Poisson-like
+  // sqrt(mean) floor: this continuous metric gets a floor based on the
+  // pool's own spread instead (see annotateSignificance's floorMode option).
+  var RISK_FLOOR_OPTS = { floorMode: "sd", minFloor: 0.01 };
+
+  function renderRiskCard(latest) {
+    var card = document.getElementById("riskSigCard");
+    if (!card) return;
+    if (!latest || !latest.sig) {
+      card.innerHTML = '<div class="sig-body"><span class="sig-tag unknown">Not enough history</span>' +
+        '<p class="sig-headline">Can’t tell yet</p>' +
+        '<p class="sig-detail">Not enough weeks of rated reports yet to estimate a normal range for average risk at this period length.</p></div>';
+      return;
+    }
+    var s = latest.sig;
+    // Inverted vs. the report-count card: a lower risk score is the good
+    // direction, so "up" (above the historical average) reads as bad here.
+    var dir = s.dir === "down" ? "up" : "down";
+    var colorVar = s.cls === "normal" ? "var(--good)" : (dir === "down" ? (s.cls === "significant" ? "var(--serious)" : "var(--warn)") : "var(--good)");
+    var tagClass = s.cls === "normal" ? "normal" : (s.cls + "-" + dir);
+    var scale = Math.max(latest.total, s.mean, 0.001) * 1.1;
+    var actualPct = (latest.total / scale * 100).toFixed(1);
+    var expectedPct = (s.mean / scale * 100).toFixed(1);
+    card.innerHTML =
+      '<div class="sig-body">' +
+      '<span class="sig-tag ' + tagClass + '">' + sigLabel(s) + '</span>' +
+      '<div class="cmp-wrap">' +
+      '<div class="cmp-track">' +
+      '<div class="cmp-fill" data-target-width="' + actualPct + '" style="width:' + (REDUCE_MOTION ? actualPct : 0) + '%;background:' + colorVar + '"></div>' +
+      '<div class="cmp-target" data-target-left="' + expectedPct + '" style="left:' + (REDUCE_MOTION ? expectedPct : 0) + '%"></div>' +
+      '</div>' +
+      '<div class="cmp-labels">' +
+      '<span class="cmp-label-item"><span class="cmp-swatch" style="background:' + colorVar + '"></span>Actual<strong>' + latest.total.toFixed(1) + '</strong></span>' +
+      '<span class="cmp-label-item"><span class="cmp-swatch target"></span>Expected<strong>' + s.mean.toFixed(1) + '</strong></span>' +
+      '</div>' +
+      '</div>' +
+      '</div>';
+    if (!REDUCE_MOTION) {
+      var fills = card.querySelectorAll("[data-target-width]");
+      var targets = card.querySelectorAll("[data-target-left]");
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          Array.prototype.forEach.call(fills, function (elx) { elx.style.width = elx.getAttribute("data-target-width") + "%"; });
+          Array.prototype.forEach.call(targets, function (elx) { elx.style.left = elx.getAttribute("data-target-left") + "%"; });
+        });
+      });
+    }
+  }
+
+  function renderRiskPage(range, rangeMode, periodDays) {
+    var emptyNote = document.getElementById("riskEmptyNote");
+    var content = document.getElementById("riskContent");
+    var badge = document.getElementById("navRiskBadge");
+    if (!state.hasRiskCol) {
+      emptyNote.hidden = false;
+      emptyNote.innerHTML = '<div class="empty-note">No “Risk level (Initial)” column found in this file, so this page has nothing to show. Re-export from iQSMS with that column included to see it here.</div>';
+      content.hidden = true;
+      if (badge) badge.hidden = true;
+      return;
+    }
+    emptyNote.hidden = true;
+    content.hidden = false;
+
+    var totalReports = state.records.length;
+
+    // ---- KPI row ----
+    var curAvg = avgRiskInRange(range.start, range.end);
+    var shift = rangeMode === "week" ? 7 : periodDays;
+    var priorStart = range.start - shift, priorEnd = range.end - shift;
+    var havePrior = priorStart >= state.minIdx;
+    var priorAvg = havePrior ? avgRiskInRange(priorStart, priorEnd) : null;
+    var pct = (curAvg != null && priorAvg != null && priorAvg > 0) ? Math.round(((curAvg - priorAvg) / priorAvg) * 100) : null;
+
+    // Long-run trend: least-squares slope of weekly average risk across
+    // every complete Mon–Sun week this file has (up to a year), expressed as
+    // the estimated overall percent change from the first week to the last —
+    // "is the average report increasing in risk" reduced to one number.
+    // This is a simple trend estimate, not a significance test on its own —
+    // it's the "Long-run trend" KPI's job to answer that specific question,
+    // separately from the "is this week normal" card below.
+    var trendBuckets = weeklyBuckets(avgRiskInRange, 52);
+    trendBuckets.forEach(function (b) { if (b.total == null) b.full = false; });
+    annotateSignificance(trendBuckets, RISK_FLOOR_OPTS);
+    var trendFull = trendBuckets.filter(function (b) { return b.full; });
+    var trend = trendFull.length >= 4 ? linearTrend(trendFull.map(function (b, i) { return { x: i, y: b.total }; })) : null;
+    var trendPct = null;
+    if (trend) {
+      var estStart = trend.intercept, estEnd = trend.intercept + trend.slope * (trendFull.length - 1);
+      trendPct = estStart !== 0 ? Math.round(((estEnd - estStart) / Math.abs(estStart)) * 100) : null;
+    }
+
+    var icons = {
+      risk: '<svg viewBox="0 0 24 24" fill="none"><path d="M12 4l8 14H4l8-14Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M12 10v3.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="15.8" r="0.9" fill="currentColor"/></svg>',
+      delta: '<svg viewBox="0 0 24 24" fill="none"><path d="M4 15l5-5 4 4 7-7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 6.5h5V11.5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      trend: '<svg viewBox="0 0 24 24" fill="none"><path d="M3.5 12h4l3-7 4 14 3-9h3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      caveat: '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7"/><path d="M12 8v5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="15.6" r="1" fill="currentColor"/></svg>',
+    };
+
+    var kpis = [
+      curAvg == null
+        ? { icon: icons.risk, label: "Average risk score", value: "—", sub: "no rated reports in this range" }
+        : { icon: icons.risk, label: "Average risk score", to: curAvg, decimals: 1, sub: fmtShort(range.start) + " – " + fmtShort(range.end) },
+      pct == null
+        ? { icon: icons.delta, label: "Vs. prior period", value: "—", sub: "not enough history yet", cls: "flat" }
+        : { icon: icons.delta, label: "Vs. prior period", to: pct, decimals: 0, suffix: "%", forceSign: true, sub: priorAvg.toFixed(1) + " avg before that", cls: pct > 0 ? "down" : (pct < 0 ? "up" : "flat") },
+      trendPct == null
+        ? { icon: icons.trend, label: "Long-run trend", value: "—", sub: "not enough weekly history yet" }
+        : { icon: icons.trend, label: "Long-run trend", to: trendPct, decimals: 0, suffix: "%", forceSign: true, sub: "estimated change over " + trendFull.length + " weeks", cls: trendPct > 0 ? "down" : (trendPct < 0 ? "up" : "flat") },
+      { icon: icons.caveat, label: "Unrated reports", to: state.unratedCount, decimals: 0, sub: totalReports ? Math.round(state.unratedCount / totalReports * 100) + "% of all reports · excluded from averages" : "", cls: "flat" },
+    ];
+
+    var wrap = document.getElementById("riskKpis");
+    wrap.innerHTML = kpis.map(function (k, i) {
+      return '<div class="kpi"><div class="kpi-top"><span class="label">' + k.label + '</span><span class="kpi-badge">' + k.icon + '</span></div>' +
+        '<div class="value"><span data-riskcount="' + i + '">' + (k.value != null ? k.value : "0") + '</span></div>' +
+        '<div class="delta ' + (k.cls || "flat") + '">' + k.sub + "</div></div>";
+    }).join("");
+    kpis.forEach(function (k, i) {
+      if (k.to == null) return;
+      var el = wrap.querySelector('[data-riskcount="' + i + '"]');
+      var prefix = k.forceSign && k.to > 0 ? "+" : "";
+      animateNumber(el, k.to, { decimals: k.decimals, suffix: k.suffix || "", prefix: prefix });
+    });
+
+    document.getElementById("riskCaveat").textContent =
+      "Scored from this org's 5×5 risk matrix (severity × likelihood). “No risk involved” is treated as a score of 0; reports marked not yet evaluated, blank, or with an unrecognized rating are left out of every average on this page rather than guessed at — flag it if that's not how you'd want these two cases handled.";
+
+    // ---- "Is [this period]'s risk normal?" ----
+    var phrase = rangePhrase(rangeMode, periodDays);
+    var riskOverviewBuckets = rangeMode === "week"
+      ? partialWeekBuckets(avgRiskInRange, periodDays, periodCountFor(7))
+      : periodBuckets(avgRiskInRange, periodDays, periodCountFor(periodDays), range.end);
+    riskOverviewBuckets.forEach(function (b) { if (b.total == null) b.full = false; });
+    annotateSignificance(riskOverviewBuckets, RISK_FLOOR_OPTS);
+    var fullRO = riskOverviewBuckets.filter(function (b) { return b.full; });
+    var latestRisk = fullRO.length ? fullRO[fullRO.length - 1] : null;
+
+    var subjLower = phrase.subject.charAt(0).toLowerCase() + phrase.subject.slice(1);
+    document.getElementById("riskSigTitle").textContent = "Is " + possessive(subjLower) + " average risk normal?";
+    document.getElementById("riskWeekNote").textContent = latestRisk ? fmtShort(latestRisk.start) + " – " + fmtShort(latestRisk.end) : "";
+    renderRiskCard(latestRisk);
+    renderDistChart(
+      latestRisk && latestRisk.sig ? latestRisk.sig : null,
+      possessive(phrase.subject) + " average risk", phrase.tag,
+      "riskDistChart", "riskDistCaption", true
+    );
+
+    // ---- Weekly average risk (6 months) ----
+    var chartBuckets = trendBuckets.slice(-26);
+    var chartFull = chartBuckets.filter(function (b) { return b.full; });
+    document.getElementById("riskTrendNote").textContent = chartFull.length
+      ? chartFull.length + " complete weeks shown (Mon–Sun), " + fmtShort(chartFull[0].start) + " – " + fmtShort(chartFull[chartFull.length - 1].end)
+      : "Not enough history yet";
+    renderBarChart("barsRisk", "legendRisk", chartBuckets, null, {
+      invert: true,
+      fmtVal: function (v) { return v.toFixed(1); },
+      unitLabel: "avg risk score",
+      baselineUnit: "avg score/wk",
+      noDataLabel: "no rated reports that week",
+      legendWarnLabel: "Notably high risk (2σ+ from typical)",
+      legendSeriousLabel: "Significantly high risk (3σ+ from typical)",
+    });
+
+    var riskFlagged = trendFull.filter(function (b) { return b.sig && b.sig.cls !== "normal"; }).length;
+    if (badge) { if (riskFlagged) { badge.hidden = false; badge.textContent = riskFlagged; } else { badge.hidden = true; } }
+  }
+
+  function renderGrid(range) {
+    var dayList = [];
+    for (var i = range.start; i <= range.end; i++) dayList.push(i);
+
+    var totals = {};
+    allDeptNames().forEach(function (d) { totals[d] = countInRange(state.byDept[d], range.start, range.end); });
+    var activeDeptNames = allDeptNames().filter(function (d) { return totals[d] > 0; }).sort(function (a, b) { return totals[b] - totals[a]; });
+    var silentDeptNames = allDeptNames().filter(function (d) { return totals[d] === 0; });
+
+    var maxCell = 1;
+    var matrix = {};
+    activeDeptNames.forEach(function (d) {
+      matrix[d] = dayList.map(function (dayIdx) { return countInRange(state.byDept[d], dayIdx, dayIdx); });
+      matrix[d].forEach(function (v) { if (v > maxCell) maxCell = v; });
+    });
+    function heatLevel(v) { if (v === 0) return 0; var f = v / maxCell; if (f > 0.75) return 4; if (f > 0.5) return 3; if (f > 0.25) return 2; return 1; }
+
+    var thead = "<thead><tr><th class=\"dept-col\">Department</th>" +
+      dayList.map(function (d) { return "<th><span class=\"dow\">" + fmtDow(d) + "</span>" + fromDayIndex(d).getUTCDate() + "</th>"; }).join("") +
+      "<th class=\"total-col\">Total</th></tr></thead>";
+
+    var colTotals = dayList.map(function (d) { var t = 0; activeDeptNames.forEach(function (dep) { t += countInRange(state.byDept[dep], d, d); }); return t; });
+    var grandTotal = colTotals.reduce(function (a, b) { return a + b; }, 0);
+
+    var tbody = "<tbody>" + activeDeptNames.map(function (d) {
+      return "<tr><td class=\"dept\">" + escapeHtml(d) + "</td>" +
+        matrix[d].map(function (v) { return '<td class="count" data-heat="' + heatLevel(v) + '">' + (v === 0 ? "&ndash;" : v) + "</td>"; }).join("") +
+        "<td class=\"total\">" + totals[d] + "</td></tr>";
+    }).join("") + "</tbody>";
+
+    var tfoot = "<tfoot><tr><td class=\"dept\">Total</td>" + colTotals.map(function (t) { return "<td>" + t + "</td>"; }).join("") + "<td class=\"total\">" + grandTotal + "</td></tr></tfoot>";
+
+    document.getElementById("grid").innerHTML = thead + tbody + tfoot;
+
+    document.getElementById("quiet-note").textContent = silentDeptNames.length
+      ? silentDeptNames.join(", ") + " logged no reports in this window — omitted from the grid above."
+      : "";
+    document.getElementById("missingNote").textContent = state.missingCount
+      ? state.missingCount + " report" + (state.missingCount === 1 ? "" : "s") + " in this file " + (state.missingCount === 1 ? "has" : "have") + " no readable date and " + (state.missingCount === 1 ? "is" : "are") + " excluded throughout."
+      : "";
+  }
+
+})();
+</script>
