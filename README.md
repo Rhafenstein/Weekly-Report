@@ -11,15 +11,3 @@ A self-service dashboard for tracking daily/weekly safety-report submission rate
 3. Browse the three pages: Overview, Trends & Significance, Risk Trend (if your export has a "Risk level (Initial)" column), and Daily Detail.
 
 To refresh with a new day's numbers, just upload a new export — it's a full cumulative list each time, so the dashboard rebuilds the whole picture from scratch.
-
-## Updating this repo
-
-This is a single self-contained HTML file (`index.html`) — no build step, no dependencies to install. To publish a new version:
-
-1. Replace `index.html` in this repo with the updated file.
-2. Commit and push (or use GitHub's "Upload files" button in the web UI to drag-and-drop the replacement).
-3. If GitHub Pages is enabled, the live link updates automatically within a minute or two.
-
-## Turning on GitHub Pages (one-time)
-
-Settings → Pages → under "Build and deployment," set Source to "Deploy from a branch," pick your main branch and the `/ (root)` folder → Save. GitHub will give you the live URL a moment later.
